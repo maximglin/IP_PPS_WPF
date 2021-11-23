@@ -29,6 +29,8 @@ namespace IP_PPS
         public int Sem { get; set; }
         public string Period => Sem % 2 == 1 ? "осень" : "весна";
         public decimal[] Hours { get; } = new decimal[13];
+
+        public decimal AuditorHours => Hours[0] + Hours[1] + Hours[2];
     }
     class Plan : Base
     {
@@ -194,6 +196,94 @@ namespace IP_PPS
             H13 = g.Hours[12].ToHours()
         }).ToList();
 
+        public class MetodPredmet
+        {
+            public string Name { get; set; }
+            public decimal Osen { get; set; }
+            public decimal Vesna { get; set; }
+        }
+        public List<MetodPredmet> MetodPredmets
+        {
+            get
+            {
+                decimal leftHours = HoursToCount - 20;
+                leftHours -= foses.Select(f => f.Hours).Sum();
+                leftHours -= nauchorg.Select(f => f.Hours).Sum();
+                leftHours -= nauchissl.Select(f => f.Hours).Sum();
+                leftHours -= nauchmetod.Select(f => f.Hours).Sum();
+                leftHours -= ispob.Select(f => f.Hours).Sum();
+                leftHours -= kval.Select(f => f.Hours).Sum();
+
+                
+
+                var g = GroupedPredmets.Where(p => p.AuditorHours > 0).GroupBy(p => p.Name);
+                List<MetodPredmet> mp = new List<MetodPredmet>();
+
+                foreach (var el in g)
+                {
+                    MetodPredmet pr = new MetodPredmet();
+                    pr.Name = el.Key;
+                    pr.Osen = el.Where(p => p.Period == "осень").Select(p => p.AuditorHours).Sum();
+                    pr.Vesna = el.Where(p => p.Period == "весна").Select(p => p.AuditorHours).Sum();
+                    mp.Add(pr);
+                }
+
+                if (mp.Count == 0)
+                    return mp;
+
+                decimal coef;
+                decimal sum = mp.Select(p => p.Osen + p.Vesna).Sum();
+
+
+
+                if (leftHours < sum)
+                    coef = leftHours / sum;
+                else
+                    coef = 1m;
+
+                foreach(var p in mp)
+                {
+                    p.Osen *= coef;
+                    p.Vesna *= coef;
+
+                    p.Osen = decimal.Round(p.Osen, 1).Normalize();
+                    p.Vesna = decimal.Round(p.Vesna, 1).Normalize();
+                }
+
+
+                if(leftHours < sum)
+                if(mp.Select(p => p.Osen + p.Vesna).Sum() != leftHours)
+                {
+                    var dif = mp.Select(p => p.Osen + p.Vesna).Sum() - leftHours;
+                    if (mp[0].Osen != 0)
+                        mp[0].Osen -= dif;
+                    else
+                        mp[0].Vesna -= dif;
+                }
+
+                return mp;
+            }
+        }
+
+        public decimal MetodPrHours => MetodPredmets.Select(p => p.Osen + p.Vesna).Sum().Normalize();
+        public decimal NotDistributedHours
+        {
+            get
+            {
+                if (HoursToCount == 0m)
+                    return 0m;
+                decimal leftHours = HoursToCount - 20;
+                leftHours -= foses.Select(f => f.Hours).Sum();
+                leftHours -= nauchorg.Select(f => f.Hours).Sum();
+                leftHours -= nauchissl.Select(f => f.Hours).Sum();
+                leftHours -= nauchmetod.Select(f => f.Hours).Sum();
+                leftHours -= ispob.Select(f => f.Hours).Sum();
+                leftHours -= kval.Select(f => f.Hours).Sum();
+                leftHours -= MetodPredmets.Select(p => p.Osen + p.Vesna).Sum();
+                return leftHours.Normalize();
+            }
+        }
+
         public string Trudoustr { get; set; } = string.Empty;
         public string Dolzhnost { get; set; } = string.Empty;
         public string DolzhnostRP { get; set; } = string.Empty;
@@ -222,6 +312,13 @@ namespace IP_PPS
         //----- not parsed
 
 
+        public void OnDistribute()
+        {
+            OnPropertyChanged(nameof(HoursEntered));
+            OnPropertyChanged(nameof(MetodPredmets));
+            OnPropertyChanged(nameof(NotDistributedHours));
+            OnPropertyChanged(nameof(MetodPrHours));
+        }
 
         public Plan()
         {
@@ -286,7 +383,7 @@ namespace IP_PPS
                 if (fos.Period != null && CheckPeriod(fos.Period))
                     foses.Add((fos.Name, Convert.ToDecimal(fos.Hours), fos.Period));
             }
-            OnPropertyChanged(nameof(HoursEntered));
+            OnDistribute();
         }
         public ObservableCollection<Rabota> Foses
         {
@@ -316,7 +413,7 @@ namespace IP_PPS
                 if (r.Period != null && CheckPeriod(r.Period))
                     nauchorg.Add((r.Name, Convert.ToDecimal(r.Hours), r.Period));
             }
-            OnPropertyChanged(nameof(HoursEntered));
+            OnDistribute();
         }
         public ObservableCollection<Rabota> NauchOrg
         {
@@ -347,7 +444,7 @@ namespace IP_PPS
                 if (r.Period != null && CheckPeriod(r.Period))
                     nauchissl.Add((r.Name, Convert.ToDecimal(r.Hours), r.Period));
             }
-            OnPropertyChanged(nameof(HoursEntered));
+            OnDistribute();
         }
         public ObservableCollection<Rabota> NauchIssl
         {
@@ -378,7 +475,7 @@ namespace IP_PPS
                 if (r.Period != null && CheckPeriod(r.Period))
                     nauchmetod.Add((r.Name, Convert.ToDecimal(r.Hours), r.Period));
             }
-            OnPropertyChanged(nameof(HoursEntered));
+            OnDistribute();
         }
         public ObservableCollection<Rabota> NauchMetod
         {
@@ -410,7 +507,7 @@ namespace IP_PPS
                 if (r.Period != null && CheckPeriod(r.Period))
                     ispob.Add((r.Name, Convert.ToDecimal(r.Hours), r.Period));
             }
-            OnPropertyChanged(nameof(HoursEntered));
+            OnDistribute();
         }
         public ObservableCollection<Rabota> Ispob
         {
@@ -442,7 +539,7 @@ namespace IP_PPS
                 if (r.Period != null && CheckPeriod(r.Period))
                     kval.Add((r.Name, Convert.ToDecimal(r.Hours), r.Period));
             }
-            OnPropertyChanged(nameof(HoursEntered));
+            OnDistribute();
         }
         public ObservableCollection<Rabota> Kval
         {
@@ -466,7 +563,7 @@ namespace IP_PPS
             nauchissl.Select(r => r.Hours).Sum() +
             nauchmetod.Select(r => r.Hours).Sum() +
             ispob.Select(r => r.Hours).Sum() +
-            kval.Select(r => r.Hours).Sum();
+            kval.Select(r => r.Hours).Sum() + 20m;
     }
 
 

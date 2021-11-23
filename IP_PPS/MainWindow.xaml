@@ -31,6 +31,32 @@
                 <TextBlock Text="{Binding SelectedPlan.HoursEntered}"></TextBlock>
                 <TextBlock>ч</TextBlock>
             </WrapPanel>
+            <WrapPanel>
+                <TextBlock>Нужно всего распределить =</TextBlock>
+                <TextBlock Text="{Binding SelectedPlan.HoursToCount}"></TextBlock>
+                <TextBlock>ч</TextBlock>
+            </WrapPanel>
+            <WrapPanel>
+                <TextBlock>На метод подготовку пошло =</TextBlock>
+                <TextBlock Text="{Binding SelectedPlan.MetodPrHours}"></TextBlock>
+                <TextBlock>ч</TextBlock>
+            </WrapPanel>
+            <WrapPanel>
+                <TextBlock>Осталось не распределенными часов = </TextBlock>
+                <TextBlock Text="{Binding SelectedPlan.NotDistributedHours}" x:Name="notdistrhours">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="#DD0000"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ElementName=notdistrhours, Path=Text}" Value="0">
+                                    <Setter Property="Foreground" Value="#007700"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <TextBlock>ч</TextBlock>
+            </WrapPanel>
         </StackPanel>
         
 
@@ -73,11 +99,12 @@
                         AutoGenerateColumns="True"
                         ColumnWidth="*" CanUserAddRows="false" IsReadOnly="true"></DataGrid>
             </TabItem>
-            
+
             <TabItem Header="4 таблица">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto"></RowDefinition>
+                        <RowDefinition Height="1.5*"></RowDefinition>
                         <RowDefinition></RowDefinition>
                     </Grid.RowDefinitions>
                     <DataGrid Grid.Row="1"
@@ -91,7 +118,11 @@
                         <Button Grid.Row="0" Click="RButton_Click_1">Remove</Button>
                         <TextBlock>Фосы и РПД</TextBlock>
                     </WrapPanel>
-                    
+
+                    <DataGrid Grid.Row="2"
+                        ItemsSource="{Binding MetodPredmets}"
+                        AutoGenerateColumns="True"
+                        ColumnWidth="*" CanUserAddRows="false" IsReadOnly="true"></DataGrid>
                 </Grid>
                 
             </TabItem>

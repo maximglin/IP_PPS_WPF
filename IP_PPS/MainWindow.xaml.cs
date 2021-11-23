@@ -111,7 +111,9 @@ namespace IP_PPS
             
             this.data.OnPropertyChanged(nameof(this.data.Prepods));
             foreach (var p in this.data.Prepods)
-                p.OnPropertyChanged(nameof(p.HoursEntered));
+            { 
+                p.OnDistribute();
+            }
         }
 
 
@@ -772,6 +774,10 @@ namespace IP_PPS
                 return "-";
             else
                 return hours.ToString();
+        }
+        public static decimal Normalize(this decimal value)
+        {
+            return value / 1.000000000000000000000000000000000m;
         }
     }
 }
