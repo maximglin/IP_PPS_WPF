@@ -267,6 +267,10 @@ namespace IP_PPS
             app.Replace("stavka", plan.Stavka);
             app.Replace("trudoustr", plan.Trudoustr);
 
+
+
+            if (plan.GroupedPredmets.Count > 20)
+                System.Windows.MessageBox.Show("НУЖНО БОЛЬШЕ ЧЕМ 20 ЗАГЛУШЕК В ШАБЛОНЕ ДЛЯ ТАБЛИЦЫ 1.2");
             for (int pr = 1, i = 0; pr <= 20; pr++, i++)
             {
                 var gps = plan.GroupedPredmets;
@@ -488,6 +492,8 @@ namespace IP_PPS
                    .Sum().ToHours());
             }
 
+            if (plan.GroupedPredmetsDop.Count > 20)
+                System.Windows.MessageBox.Show("НУЖНО БОЛЬШЕ ЧЕМ 20 ЗАГЛУШЕК В ШАБЛОНЕ ДЛЯ ТАБЛИЦЫ 2.2");
             for (int pr = 1, i = 0; pr <= 20; pr++, i++)
             {
                 var gps = plan.GroupedPredmetsDop;
@@ -708,6 +714,71 @@ namespace IP_PPS
                    .Select(p => p.Hours.Sum())
                    .Sum().ToHours());
             }
+
+
+            for (int pr = 1, i = 0; pr <= 8; pr++, i++)
+            {
+                var mps = plan.MetodPredmets;
+                if (i < mps.Count)
+                {
+                    var mp = mps[i];
+                    app.Replace($"metod_pr{pr}_nazv", mp.Name);
+                    app.Replace($"metod_pr{pr}_osen", mp.Osen.ToHours());
+                    app.Replace($"metod_pr{pr}_vesna", mp.Vesna.ToHours());
+
+                    app.Replace($"metod_pr{pr}_osen_per", "осень");
+                    app.Replace($"metod_pr{pr}_vesna_per", "весна");
+                }
+                else
+                {
+                    app.Replace($"metod_pr{pr}_nazv", "");
+                    app.Replace($"metod_pr{pr}_osen", "");
+                    app.Replace($"metod_pr{pr}_vesna", "");
+
+                    app.Replace($"metod_pr{pr}_osen_per", "");
+                    app.Replace($"metod_pr{pr}_vesna_per", "");
+                }
+            }
+            for (int pr = 1, i = 0; pr <= 5; pr++, i++)
+            {
+                var mps = plan.foses;
+                if (i < mps.Count)
+                {
+                    var mp = mps[i];
+                    app.Replace($"fosrpd{pr}_nazv", mp.Fos);
+                    app.Replace($"fosrpd{pr}", mp.Hours);
+                    app.Replace($"fosrpd{pr}per", mp.Period);
+
+                }
+                else
+                {
+                    app.Replace($"fosrpd{pr}_nazv", "");
+                    app.Replace($"fosrpd{pr}", "");
+                    app.Replace($"fosrpd{pr}per", "");
+                }
+            }
+            app.Replace("4vsego_osen", plan.foses
+                .Where(f => f.Period == "осень")
+                .Select(f => f.Hours).Sum()
+                +
+                plan.MetodPredmets
+                .Select(p => p.Osen).Sum()
+                );
+            app.Replace("4vsego_vesna", plan.foses
+                .Where(f => f.Period == "весна")
+                .Select(f => f.Hours).Sum()
+                +
+                plan.MetodPredmets
+                .Select(p => p.Vesna).Sum()
+                );
+            app.Replace("4vsego", plan.foses
+                .Select(f => f.Hours).Sum()
+                +
+                plan.MetodPredmets
+                .Select(p => p.Osen + p.Vesna).Sum()
+                );
+
+
 
 
             doc.Save();

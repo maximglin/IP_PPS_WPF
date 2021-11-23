@@ -365,7 +365,7 @@ namespace IP_PPS
 
         #region foses
 
-        List<(string Fos, decimal Hours, string Period)> foses = new List<(string Fos, decimal Hours, string Period)>();
+        public List<(string Fos, decimal Hours, string Period)> foses = new List<(string Fos, decimal Hours, string Period)>();
 
 
         bool CheckPeriod(string period)
@@ -403,7 +403,7 @@ namespace IP_PPS
 
         #region nauchorg
 
-        List<(string Nauchorg, decimal Hours, string Period)> nauchorg = new List<(string Nauchorg, decimal Hours, string Period)>();
+        public List<(string Nauchorg, decimal Hours, string Period)> nauchorg = new List<(string Nauchorg, decimal Hours, string Period)>();
 
         public void UpdateNauchOrg()
         {
@@ -434,7 +434,7 @@ namespace IP_PPS
 
         #region nauchissl
 
-        List<(string Nauchissl, decimal Hours, string Period)> nauchissl = new List<(string Nauchorg, decimal Hours, string Period)>();
+        public List<(string Nauchissl, decimal Hours, string Period)> nauchissl = new List<(string Nauchorg, decimal Hours, string Period)>();
 
         public void UpdateNauchIssl()
         {
@@ -465,7 +465,7 @@ namespace IP_PPS
 
         #region nauchmetod
 
-        List<(string Nauchmetod, decimal Hours, string Period)> nauchmetod = new List<(string Nauchorg, decimal Hours, string Period)>();
+        public List<(string Nauchmetod, decimal Hours, string Period)> nauchmetod = new List<(string Nauchorg, decimal Hours, string Period)>();
 
         public void UpdateNauchMetod()
         {
@@ -497,7 +497,7 @@ namespace IP_PPS
 
         #region ispob
 
-        List<(string Ispob, decimal Hours, string Period)> ispob = new List<(string Nauchorg, decimal Hours, string Period)>();
+        public List<(string Ispob, decimal Hours, string Period)> ispob = new List<(string Nauchorg, decimal Hours, string Period)>();
 
         public void UpdateIspob()
         {
@@ -529,7 +529,7 @@ namespace IP_PPS
 
         #region kval
 
-        List<(string Ispob, decimal Hours, string Period)> kval = new List<(string Nauchorg, decimal Hours, string Period)>();
+        public List<(string Ispob, decimal Hours, string Period)> kval = new List<(string Nauchorg, decimal Hours, string Period)>();
 
         public void UpdateKval()
         {
