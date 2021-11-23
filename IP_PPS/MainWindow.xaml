@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:IP_PPS"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="700" Width="1000">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"></RowDefinition>
@@ -16,9 +16,23 @@
         <WrapPanel Grid.Row="0">
             <Button Click="Button_Click">Parse Data</Button>
         </WrapPanel>
-        <WrapPanel Grid.Row="1">
-            <ComboBox ItemsSource="{Binding Prepods}" SelectedItem="{Binding SelectedPlan}"></ComboBox>
-        </WrapPanel>
+        <StackPanel Grid.Row="1">
+            <DockPanel LastChildFill="false">
+                <WrapPanel>
+                    <ComboBox ItemsSource="{Binding Prepods}" SelectedItem="{Binding SelectedPlan}" MinWidth="200px" x:Name="comboBox"></ComboBox>
+                    <Button Width="100px" Content="Назад" Click="Button_Click_6"></Button>
+                    <Button Width="100px" Content="Вперед" Click="Button_Click_5"></Button>
+                </WrapPanel>
+                <Button DockPanel.Dock="Right" Click="Button_Click_9">Сгенерировать</Button>
+            </DockPanel>
+            
+            <WrapPanel>
+                <TextBlock>Введено часов (помимо предметов) =</TextBlock>
+                <TextBlock Text="{Binding SelectedPlan.HoursEntered}"></TextBlock>
+                <TextBlock>ч</TextBlock>
+            </WrapPanel>
+        </StackPanel>
+        
 
         <TabControl Grid.Row="2" DataContext="{Binding SelectedPlan}">
             <TabItem Header="Данные">
@@ -48,6 +62,18 @@
                     <TextBlock Text="{Binding Stavka}"></TextBlock>
                 </StackPanel>
             </TabItem>
+
+            <TabItem Header="1 таблица">
+                <DataGrid ItemsSource="{Binding GroupedPredmetsStrings}"
+                        AutoGenerateColumns="True"
+                        ColumnWidth="*" CanUserAddRows="false" IsReadOnly="true"></DataGrid>
+            </TabItem>
+            <TabItem Header="2 таблица">
+                <DataGrid ItemsSource="{Binding GroupedPredmetsDopStrings}"
+                        AutoGenerateColumns="True"
+                        ColumnWidth="*" CanUserAddRows="false" IsReadOnly="true"></DataGrid>
+            </TabItem>
+            
             <TabItem Header="4 таблица">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -61,9 +87,9 @@
                         ColumnWidth="*">
                     </DataGrid>
                     <WrapPanel Grid.Row="0">
-                        <TextBlock>Фосы и РПД</TextBlock>
                         <Button Grid.Row="0" Click="Button_Click_1">Add</Button>
                         <Button Grid.Row="0" Click="RButton_Click_1">Remove</Button>
+                        <TextBlock>Фосы и РПД</TextBlock>
                     </WrapPanel>
                     
                 </Grid>
@@ -81,9 +107,9 @@
                         <RowDefinition></RowDefinition>
                     </Grid.RowDefinitions>
                     <WrapPanel Grid.Row="0">
-                        <TextBlock>Научно организационная</TextBlock>
                         <Button Click="Button_Click_2">Add</Button>
                         <Button Click="RButton_Click_2">Remove</Button>
+                        <TextBlock>Научно организационная</TextBlock>
                     </WrapPanel>
                     <DataGrid Grid.Row="1"
                         ItemsSource="{Binding NauchOrg}"
@@ -92,9 +118,9 @@
                         ColumnWidth="*">
                     </DataGrid>
                     <WrapPanel Grid.Row="2">
-                        <TextBlock>Научно исследовательская</TextBlock>
                         <Button Click="Button_Click_3">Add</Button>
                         <Button Click="RButton_Click_3">Remove</Button>
+                        <TextBlock>Научно исследовательская</TextBlock>
                     </WrapPanel>
                     <DataGrid Grid.Row="3"
                         ItemsSource="{Binding NauchIssl}"
@@ -103,9 +129,9 @@
                         ColumnWidth="*">
                     </DataGrid>
                     <WrapPanel Grid.Row="4">
-                        <TextBlock>Научно методическая</TextBlock>
                         <Button Click="Button_Click_4">Add</Button>
                         <Button Click="RButton_Click_4">Remove</Button>
+                        <TextBlock>Научно методическая</TextBlock>
                     </WrapPanel>
                     <DataGrid Grid.Row="5"
                         ItemsSource="{Binding NauchMetod}"
@@ -116,10 +142,44 @@
                 </Grid>
             </TabItem>
             <TabItem Header="6 таблица">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"></RowDefinition>
+                        <RowDefinition></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <DataGrid Grid.Row="1"
+                        ItemsSource="{Binding Ispob}"
+                        SelectedItem="{Binding SelectedIspob}"
+                        AutoGenerateColumns="True"
+                        ColumnWidth="*">
+                    </DataGrid>
+                    <WrapPanel Grid.Row="0">
+                        <Button Grid.Row="0" Click="Button_Click_7">Add</Button>
+                        <Button Grid.Row="0" Click="RButton_Click_7">Remove</Button>
+                        <TextBlock>Исполнение обязанностей</TextBlock>
+                    </WrapPanel>
 
+                </Grid>
             </TabItem>
             <TabItem Header="7 таблица">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"></RowDefinition>
+                        <RowDefinition></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <DataGrid Grid.Row="1"
+                        ItemsSource="{Binding Kval}"
+                        SelectedItem="{Binding SelectedKval}"
+                        AutoGenerateColumns="True"
+                        ColumnWidth="*">
+                    </DataGrid>
+                    <WrapPanel Grid.Row="0">
+                        <Button Grid.Row="0" Click="Button_Click_8">Add</Button>
+                        <Button Grid.Row="0" Click="RButton_Click_8">Remove</Button>
+                        <TextBlock>Повышение квалификации</TextBlock>
+                    </WrapPanel>
 
+                </Grid>
             </TabItem>
         </TabControl>
     </Grid>

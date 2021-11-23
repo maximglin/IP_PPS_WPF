@@ -110,345 +110,12 @@ namespace IP_PPS
             }
             
             this.data.OnPropertyChanged(nameof(this.data.Prepods));
+            foreach (var p in this.data.Prepods)
+                p.OnPropertyChanged(nameof(p.HoursEntered));
         }
 
 
-        class Predmet
-        {
-            public string Name;
-            public string Groups;
-            public string Type;
-            public int Sem;
-            public decimal Osen;
-            public decimal Vesna;
-
-            public string Oplata;
-
-            public decimal Vsego => Osen + Vesna;
-        }
-
-        class GroupedPredmet
-        {
-            public string Name { get; set; }
-            public HashSet<string> Groups { get; } = new HashSet<string>();
-            public int Sem { get; set; }
-            public string Period => Sem % 2 == 1 ? "осень" : "весна";
-            public decimal[] Hours { get; } = new decimal[13];
-        }
-        class Plan : Base
-        {
-            public string Name { get; set; } = string.Empty;
-
-            public List<Predmet> Predmets { get; } = new List<Predmet>();
-
-            public decimal Stavka => Hours / 900m;
-            public decimal Hours => PredmetsShtat.Select(p => p.Vsego).Sum();
-            public decimal HoursToCount => Stavka * 600m;
-
-            public List<Predmet> PredmetsShtat => Predmets.Where(p => !p.Oplata.Contains("стимулир")).ToList();
-            public List<Predmet> PredmetsDop => Predmets.Where(p => p.Oplata.Contains("стимулир")).ToList();
-
-
-            List<GroupedPredmet> GroupPredmets(List<Predmet> predmets)
-            {
-                var gr = predmets.GroupBy(p => new { p.Name, p.Sem });
-
-                List<GroupedPredmet> list = new List<GroupedPredmet>();
-
-                foreach (var p in gr)
-                {
-                    var g = new GroupedPredmet();
-                    g.Name = p.Key.Name;
-                    g.Sem = p.Key.Sem;
-                    foreach (var el in p)
-                    {
-                        g.Groups.Add(el.Groups);
-                        switch (el.Type.ToLower())
-                        {
-                            case "лекции":
-                                g.Hours[0] = el.Vsego;
-                                break;
-                            case "лабораторные работы":
-                                g.Hours[1] = el.Vsego;
-                                break;
-                            case "практические занятия":
-                                g.Hours[2] = el.Vsego;
-                                break;
-                            case "курсовые работы/проекты":
-                                g.Hours[3] = el.Vsego;
-                                break;
-                            case "индивидуальная работа":
-                                g.Hours[4] = el.Vsego;
-                                break;
-
-                            default:
-                                if (el.Name.ToLower() == "Учебная практика".ToLower())
-                                    g.Hours[5] = el.Vsego;
-                                else if (el.Name.ToLower() == "Производственная практика (научно-исследовательская работа)".ToLower())
-                                    g.Hours[5] = el.Vsego;
-                                else if (el.Name.ToLower() == "Производственная практика".ToLower())
-                                    g.Hours[5] = el.Vsego;
-
-                                else if (el.Name.ToLower() == "Дипломное проектирование (бакалавры)".ToLower())
-                                    g.Hours[9] = el.Vsego;
-                                else if (el.Name.ToLower() == "Преддипломная практика".ToLower())
-                                    g.Hours[8] = el.Vsego;
-
-                                else if (el.Name.ToLower() == "Защита дипломного проекта (бакалавры)".ToLower())
-                                    g.Hours[9] = el.Vsego;
-
-                                else if (el.Name.ToLower() == "Учебная практика (ознакомительная)".ToLower())
-                                    g.Hours[10] = el.Vsego;
-                                else if (el.Name.ToLower() == "Учебная практика (педагогическая)".ToLower())
-                                    g.Hours[10] = el.Vsego;
-                                else if (el.Name.ToLower() == "Производственная практика (НИР)".ToLower())
-                                    g.Hours[10] = el.Vsego;
-                                else if (el.Name.ToLower() == "Учебная практика (педагогическая)".ToLower())
-                                    g.Hours[10] = el.Vsego;
-                                else if (el.Name.ToLower() == "Производственная практика (проектно-технологическая)".ToLower())
-                                    g.Hours[10] = el.Vsego;
-                                else if (el.Name.ToLower() == "Производственная практика (НИР)".ToLower())
-                                    g.Hours[10] = el.Vsego;
-                                else if (el.Name.ToLower() == "Производственная практика (проектно-технологическая)".ToLower())
-                                    g.Hours[10] = el.Vsego;
-                                else if (el.Name.ToLower() == "Подготовка магистерской ВКР".ToLower())
-                                    g.Hours[12] = el.Vsego;
-
-                                else if (el.Name.ToLower() == "Производственная практика (преддипломная)".ToLower())
-                                    g.Hours[10] = el.Vsego;
-                                else if (el.Name.ToLower() == "Защита магистерской ВКР".ToLower())
-                                    g.Hours[12] = el.Vsego;
-                                break;
-                        }
-                    }
-                    list.Add(g);
-                }
-
-                return list;
-            }
-            public List<GroupedPredmet> GroupedPredmets { 
-                get
-                {
-                    return GroupPredmets(PredmetsShtat);
-                }
-            }
-            public List<GroupedPredmet> GroupedPredmetsDop
-            {
-                get
-                {
-                    return GroupPredmets(PredmetsDop);
-                }
-            }
-
-
-            public string Trudoustr { get; set; } = string.Empty;
-            public string Dolzhnost { get; set; } = string.Empty;
-            public string DolzhnostRP { get; set; } = string.Empty;
-            public string NameRP { get; set; } = string.Empty;
-            public string Zvanie { get; set; } = string.Empty;
-            public string Stepen { get; set; } = string.Empty;
-            public int Stazh { get; set; } = -1;
-
-            public string StazhStr { get => Stazh.ToString(); set
-                {
-                    int val;
-                    if (int.TryParse(value, out val))
-                        Stazh = val;
-
-                    OnPropertyChanged(nameof(Stazh));
-                    OnPropertyChanged(nameof(StazhStr));
-                }
-            }
-
-            public override string ToString()
-            {
-                return Name;
-            }
-            //----- not parsed
-
-
-
-            public Plan()
-            {
-                Foses.CollectionChanged += (sender, e) =>
-                {
-                    UpdateFoses();
-                };
-                NauchOrg.CollectionChanged += (sender, e) =>
-                {
-                    UpdateNauchOrg();
-                };
-                NauchIssl.CollectionChanged += (sender, e) =>
-                {
-                    UpdateNauchIssl();
-                };
-                NauchMetod.CollectionChanged += (sender, e) =>
-                {
-                    UpdateNauchMetod();
-                };
-            }
-
-            public class Rabota : Base
-            {
-                Action update;
-                public Rabota(Action update)
-                {
-                    this.update = update;
-                }
-                string name;
-                public string Name { get => name; set { name = value; update?.Invoke(); } }
-                string hours;
-                public string Hours { get => hours; set { hours = value; update?.Invoke(); } }
-                string period;
-                public string Period { get => period; set { period = value; update?.Invoke(); } }
-            }
-
-            #region foses
-
-            List<(string Fos, decimal Hours, string Period)> foses = new List<(string Fos, decimal Hours, string Period)>();
-
-            
-            bool CheckPeriod(string period)
-            {
-                if (period.ToLower() == "осень" ||
-                    period.ToLower() == "весна")
-                    return true;
-                return false;
-            }
-            public void UpdateFoses()
-            {
-                foses.Clear();
-                foreach (var fos in Foses)
-                {
-                    if(fos.Period != null && CheckPeriod(fos.Period))
-                        foses.Add((fos.Name, Convert.ToDecimal(fos.Hours), fos.Period));
-                }
-            }
-            public ObservableCollection<Rabota> Foses
-            {
-                get;
-            } = new ObservableCollection<Rabota>();
-            Rabota selectedFos;
-            public Rabota SelectedFos
-            {
-                get => selectedFos;
-                set
-                {
-                    selectedFos = value;
-                    OnPropertyChanged(nameof(SelectedFos));
-                }
-            }
-            #endregion
-
-            #region nauchorg
-
-            List<(string Nauchorg, decimal Hours, string Period)> nauchorg = new List<(string Nauchorg, decimal Hours, string Period)>();
-
-            public void UpdateNauchOrg()
-            {
-                nauchorg.Clear();
-                foreach (var r in NauchOrg)
-                {
-                    if (r.Period != null && CheckPeriod(r.Period))
-                        nauchorg.Add((r.Name, Convert.ToDecimal(r.Hours), r.Period));
-                }
-            }
-            public ObservableCollection<Rabota> NauchOrg
-            {
-                get;
-            } = new ObservableCollection<Rabota>();
-            Rabota selectedNauchOrg;
-            public Rabota SelectedNauchOrg
-            {
-                get => selectedNauchOrg;
-                set
-                {
-                    selectedNauchOrg = value;
-                    OnPropertyChanged(nameof(SelectedNauchOrg));
-                }
-            }
-            #endregion
-
-
-            #region nauchissl
-
-            List<(string Nauchissl, decimal Hours, string Period)> nauchissl = new List<(string Nauchorg, decimal Hours, string Period)>();
-
-            public void UpdateNauchIssl()
-            {
-                nauchissl.Clear();
-                foreach (var r in NauchIssl)
-                {
-                    if (r.Period != null && CheckPeriod(r.Period))
-                        nauchissl.Add((r.Name, Convert.ToDecimal(r.Hours), r.Period));
-                }
-            }
-            public ObservableCollection<Rabota> NauchIssl
-            {
-                get;
-            } = new ObservableCollection<Rabota>();
-            Rabota selectedNauchIssl;
-            public Rabota SelectedNauchIssl
-            {
-                get => selectedNauchIssl;
-                set
-                {
-                    selectedNauchIssl = value;
-                    OnPropertyChanged(nameof(SelectedNauchIssl));
-                }
-            }
-            #endregion
-
-
-            #region nauchissl
-
-            List<(string Nauchmetod, decimal Hours, string Period)> nauchmetod = new List<(string Nauchorg, decimal Hours, string Period)>();
-
-            public void UpdateNauchMetod()
-            {
-                nauchmetod.Clear();
-                foreach (var r in NauchMetod)
-                {
-                    if (r.Period != null && CheckPeriod(r.Period))
-                        nauchmetod.Add((r.Name, Convert.ToDecimal(r.Hours), r.Period));
-                }
-            }
-            public ObservableCollection<Rabota> NauchMetod
-            {
-                get;
-            } = new ObservableCollection<Rabota>();
-            Rabota selectedNauchMetod;
-            public Rabota SelectedNauchMetod
-            {
-                get => selectedNauchMetod;
-                set
-                {
-                    selectedNauchMetod = value;
-                    OnPropertyChanged(nameof(SelectedNauchMetod));
-                }
-            }
-            #endregion
-        }
-
-
-
-        class PlansData : Base
-        {
-            public Dictionary<string, Plan> Plans { get; } = new Dictionary<string, Plan>();
-
-            public IEnumerable<Plan> Prepods => Plans.Values;
-
-
-            Plan selectedPlan;
-            public Plan SelectedPlan
-            {
-                get => selectedPlan; set
-                {
-                    selectedPlan = value;
-                    OnPropertyChanged(nameof(SelectedPlan));
-                }
-            }
-        }
+        
 
         
 
@@ -483,57 +150,8 @@ namespace IP_PPS
             return dolzh + 'а';
         }
 
-        private void button2_Click(object sender, EventArgs e)
-        {
-            Word.Application wordApp = new Microsoft.Office.Interop.Word.Application { Visible = true };
-            Word.Document template = wordApp.Documents.Open(
-                System.AppDomain.CurrentDomain.BaseDirectory + @"\Document.docx",
-                ReadOnly: false, Visible: true);
-            template.Activate();
-            template.SaveAs2(System.AppDomain.CurrentDomain.BaseDirectory + @"\Планы\ИТИВС 2021 Индивидуальный план Глинкина Максима Олеговича.docx");
 
-
-
-
-
-
-
-            Word.Document doc = wordApp.Documents.Open(
-                System.AppDomain.CurrentDomain.BaseDirectory + @"\Планы\ИТИВС 2021 Индивидуальный план Глинкина Максима Олеговича.docx",
-                ReadOnly: false, Visible: true);
-            doc.Activate();
-            doc.SelectAllEditableRanges();
-
-
-            FindAndReplace(wordApp, "%dolzhnost%", "ассистент");
-            FindAndReplace(wordApp, "%dolzhrp%", "ассистента");
-            FindAndReplace(wordApp, "%fiorp%", "Глинкина Максима Олеговича");
-            doc.Save();
-        }
-        private static void FindAndReplace(Microsoft.Office.Interop.Word.Application doc, object findText, object replaceWithText)
-        {
-            //options
-            object matchCase = true;
-            object matchWholeWord = false;
-            object matchWildCards = false;
-            object matchSoundsLike = false;
-            object matchAllWordForms = false;
-            object forward = true;
-            object format = false;
-            object matchKashida = false;
-            object matchDiacritics = false;
-            object matchAlefHamza = false;
-            object matchControl = false;
-            object read_only = false;
-            object visible = true;
-            object replace = 2;
-            object wrap = 1;
-            //execute find and replace
-            doc.Selection.Find.Execute(ref findText, ref matchCase, ref matchWholeWord,
-                ref matchWildCards, ref matchSoundsLike, ref matchAllWordForms, ref forward, ref wrap, ref format, ref replaceWithText, ref replace,
-                ref matchKashida, ref matchDiacritics, ref matchAlefHamza, ref matchControl);
-        }
-
+        
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
             data.SelectedPlan.Foses.Add(new Plan.Rabota(data.SelectedPlan.UpdateFoses));
@@ -573,6 +191,526 @@ namespace IP_PPS
             if (data.SelectedPlan.SelectedNauchMetod != null)
                 data.SelectedPlan.NauchMetod.Remove(data.SelectedPlan.SelectedNauchMetod);
         }
+
+        private void Button_Click_6(object sender, RoutedEventArgs e)
+        {
+            if(comboBox.SelectedIndex > 0)
+                comboBox.SelectedIndex--;
+        }
+
+        private void Button_Click_5(object sender, RoutedEventArgs e)
+        {
+            if (comboBox.SelectedIndex < comboBox.Items.Count - 1)
+                comboBox.SelectedIndex++;
+        }
+
+
+
+
+        private void Button_Click_7(object sender, RoutedEventArgs e)
+        {
+            data.SelectedPlan.Ispob.Add(new Plan.Rabota(data.SelectedPlan.UpdateIspob));
+        }
+        private void RButton_Click_7(object sender, RoutedEventArgs e)
+        {
+            if (data.SelectedPlan.SelectedIspob != null)
+                data.SelectedPlan.Ispob.Remove(data.SelectedPlan.SelectedIspob);
+        }
+        private void Button_Click_8(object sender, RoutedEventArgs e)
+        {
+            data.SelectedPlan.Kval.Add(new Plan.Rabota(data.SelectedPlan.UpdateKval));
+        }
+        private void RButton_Click_8(object sender, RoutedEventArgs e)
+        {
+            if (data.SelectedPlan.SelectedKval != null)
+                data.SelectedPlan.Kval.Remove(data.SelectedPlan.SelectedKval);
+        }
+
+
+
+       
+        private void Button_Click_9(object sender, RoutedEventArgs e)
+        {
+            Word.Application app = new Microsoft.Office.Interop.Word.Application { Visible = true };
+            Word.Document template = app.Documents.Open(
+                System.AppDomain.CurrentDomain.BaseDirectory + @"\Document.docx",
+                ReadOnly: false, Visible: true);
+            template.Activate();
+
+
+            var plan = this.data.SelectedPlan;
+
+
+            template.SaveAs2(System.AppDomain.CurrentDomain.BaseDirectory + $@"\Планы\ИТИВС 2021 Индивидуальный план {plan.NameRP}.docx");
+
+
+
+
+
+
+
+            Word.Document doc = app.Documents.Open(
+                System.AppDomain.CurrentDomain.BaseDirectory + $@"\Планы\ИТИВС 2021 Индивидуальный план {plan.NameRP}.docx",
+                ReadOnly: false, Visible: true);
+            doc.Activate();
+            doc.SelectAllEditableRanges();
+
+
+            app.Replace("dolzhnost", plan.Dolzhnost);
+            app.Replace("dolzhrp", plan.DolzhnostRP);
+            app.Replace("fiorp", plan.NameRP);
+            app.Replace("zvanie", plan.Zvanie);
+            app.Replace("stepen", plan.Stepen);
+            app.Replace("stazh", plan.Stazh);
+            app.Replace("stavka", plan.Stavka);
+            app.Replace("trudoustr", plan.Trudoustr);
+
+            for (int pr = 1, i = 0; pr <= 20; pr++, i++)
+            {
+                var gps = plan.GroupedPredmets;
+                if (i < gps.Count)
+                {
+                    var gp = gps[i];
+                    app.Replace($"{pr}pr_sem", gp.Sem);
+                    app.Replace($"{pr}pr_nazv",
+                        $"{gp.Name} {string.Join(", ", gp.Groups.Select(group => $"({group})").ToArray())}");
+                    for (int k = 0; k <= 12; k++)
+                    {
+                        string str;
+                        if (gp.Hours[k] == 0)
+                            str = "-";
+                        else
+                            str = gp.Hours[k].ToString();
+                        app.Replace($"{pr}pr_{k + 1}", str);
+                    }
+                }
+                else
+                    break;
+                //else
+                //{
+                //    app.Replace($"{pr}pr_sem", "");
+                //    app.Replace($"{pr}pr_nazv", "");
+                //    for (int k = 0; k <= 12; k++)
+                //    {
+                //        app.Replace($"{pr}pr_{k + 1}", "");
+                //    }
+                //}
+            }
+            var tables = doc.Tables;
+            var tb = tables[3];
+            var rowstodelete = 20 - plan.GroupedPredmets.Count;
+            for (int i = 0; i < rowstodelete; i++)
+            { 
+                tb.Cell(plan.GroupedPredmets.Count + 3, 1).Select();
+                app.Selection.SelectRow();
+                app.Selection.Cells.Delete();
+            }
+
+            {
+                app.Replace("lek_osen", plan.GroupedPredmets
+                .Where(p => p.Period == "осень")
+                .Select(p => p.Hours[0])
+                .Sum().ToHours());
+                app.Replace("lab_osen", plan.GroupedPredmets
+                    .Where(p => p.Period == "осень")
+                    .Select(p => p.Hours[1])
+                    .Sum().ToHours());
+                app.Replace("sem_osen", plan.GroupedPredmets
+                    .Where(p => p.Period == "осень")
+                    .Select(p => p.Hours[2])
+                    .Sum().ToHours());
+                app.Replace("kurs_osen", plan.GroupedPredmets
+                    .Where(p => p.Period == "осень")
+                    .Select(p => p.Hours[3])
+                    .Sum().ToHours());
+                app.Replace("ind_osen", plan.GroupedPredmets
+                    .Where(p => p.Period == "осень")
+                    .Select(p => p.Hours[4])
+                    .Sum().ToHours());
+                app.Replace("prakt_osen", plan.GroupedPredmets
+                    .Where(p => p.Period == "осень")
+                    .Select(p => p.Hours[5])
+                    .Sum().ToHours());
+                app.Replace("pred_spec_osen", plan.GroupedPredmets
+                    .Where(p => p.Period == "осень")
+                    .Select(p => p.Hours[6])
+                    .Sum().ToHours());
+                app.Replace("vkr_spec_osen", plan.GroupedPredmets
+                    .Where(p => p.Period == "осень")
+                    .Select(p => p.Hours[7])
+                    .Sum().ToHours());
+                app.Replace("pred_bak_osen", plan.GroupedPredmets
+                    .Where(p => p.Period == "осень")
+                    .Select(p => p.Hours[8])
+                    .Sum().ToHours());
+                app.Replace("vkr_bak_osen", plan.GroupedPredmets
+                    .Where(p => p.Period == "осень")
+                    .Select(p => p.Hours[9])
+                    .Sum().ToHours());
+                app.Replace("mag_osen", plan.GroupedPredmets
+                    .Where(p => p.Period == "осень")
+                    .Select(p => p.Hours[10])
+                    .Sum().ToHours());
+                app.Replace("mag_kons_osen", plan.GroupedPredmets
+                   .Where(p => p.Period == "осень")
+                   .Select(p => p.Hours[11])
+                   .Sum().ToHours());
+                app.Replace("vkr_mag_osen", plan.GroupedPredmets
+                   .Where(p => p.Period == "осень")
+                   .Select(p => p.Hours[12])
+                   .Sum().ToHours());
+
+                app.Replace("uch_vsego_osen", plan.GroupedPredmets
+                   .Where(p => p.Period == "осень")
+                   .Select(p => p.Hours.Sum())
+                   .Sum().ToHours());
+            }
+            
+            {
+                app.Replace("lek_vesna", plan.GroupedPredmets
+                .Where(p => p.Period == "весна")
+                .Select(p => p.Hours[0])
+                .Sum().ToHours());
+                app.Replace("lab_vesna", plan.GroupedPredmets
+                    .Where(p => p.Period == "весна")
+                    .Select(p => p.Hours[1])
+                    .Sum().ToHours());
+                app.Replace("sem_vesna", plan.GroupedPredmets
+                    .Where(p => p.Period == "весна")
+                    .Select(p => p.Hours[2])
+                    .Sum().ToHours());
+                app.Replace("kurs_vesna", plan.GroupedPredmets
+                    .Where(p => p.Period == "весна")
+                    .Select(p => p.Hours[3])
+                    .Sum().ToHours());
+                app.Replace("ind_vesna", plan.GroupedPredmets
+                    .Where(p => p.Period == "весна")
+                    .Select(p => p.Hours[4])
+                    .Sum().ToHours());
+                app.Replace("prakt_vesna", plan.GroupedPredmets
+                    .Where(p => p.Period == "весна")
+                    .Select(p => p.Hours[5])
+                    .Sum().ToHours());
+                app.Replace("pred_spec_vesna", plan.GroupedPredmets
+                    .Where(p => p.Period == "весна")
+                    .Select(p => p.Hours[6])
+                    .Sum().ToHours());
+                app.Replace("vkr_spec_vesna", plan.GroupedPredmets
+                    .Where(p => p.Period == "весна")
+                    .Select(p => p.Hours[7])
+                    .Sum().ToHours());
+                app.Replace("pred_bak_vesna", plan.GroupedPredmets
+                    .Where(p => p.Period == "весна")
+                    .Select(p => p.Hours[8])
+                    .Sum().ToHours());
+                app.Replace("vkr_bak_vesna", plan.GroupedPredmets
+                    .Where(p => p.Period == "весна")
+                    .Select(p => p.Hours[9])
+                    .Sum().ToHours());
+                app.Replace("mag_vesna", plan.GroupedPredmets
+                    .Where(p => p.Period == "весна")
+                    .Select(p => p.Hours[10])
+                    .Sum().ToHours());
+                app.Replace("mag_kons_vesna", plan.GroupedPredmets
+                   .Where(p => p.Period == "весна")
+                   .Select(p => p.Hours[11])
+                   .Sum().ToHours());
+                app.Replace("vkr_mag_vesna", plan.GroupedPredmets
+                   .Where(p => p.Period == "весна")
+                   .Select(p => p.Hours[12])
+                   .Sum().ToHours());
+
+                app.Replace("uch_vsego_vesna", plan.GroupedPredmets
+                   .Where(p => p.Period == "весна")
+                   .Select(p => p.Hours.Sum())
+                   .Sum().ToHours());
+            }
+
+            {
+                app.Replace("lek_vsego", plan.GroupedPredmets
+
+                .Select(p => p.Hours[0])
+                .Sum().ToHours());
+                app.Replace("lab_vsego", plan.GroupedPredmets
+
+                    .Select(p => p.Hours[1])
+                    .Sum().ToHours());
+                app.Replace("sem_vsego", plan.GroupedPredmets
+
+                    .Select(p => p.Hours[2])
+                    .Sum().ToHours());
+                app.Replace("kurs_vsego", plan.GroupedPredmets
+
+                    .Select(p => p.Hours[3])
+                    .Sum().ToHours());
+                app.Replace("ind_vsego", plan.GroupedPredmets
+
+                    .Select(p => p.Hours[4])
+                    .Sum().ToHours());
+                app.Replace("prakt_vsego", plan.GroupedPredmets
+
+                    .Select(p => p.Hours[5])
+                    .Sum().ToHours());
+                app.Replace("pred_spec_vsego", plan.GroupedPredmets
+
+                    .Select(p => p.Hours[6])
+                    .Sum().ToHours());
+                app.Replace("vkr_spec_vsego", plan.GroupedPredmets
+
+                    .Select(p => p.Hours[7])
+                    .Sum().ToHours());
+                app.Replace("pred_bak_vsego", plan.GroupedPredmets
+
+                    .Select(p => p.Hours[8])
+                    .Sum().ToHours());
+                app.Replace("vkr_bak_vsego", plan.GroupedPredmets
+
+                    .Select(p => p.Hours[9])
+                    .Sum().ToHours());
+                app.Replace("mag_vsego", plan.GroupedPredmets
+
+                    .Select(p => p.Hours[10])
+                    .Sum().ToHours());
+                app.Replace("mag_kons_vsego", plan.GroupedPredmets
+
+                   .Select(p => p.Hours[11])
+                   .Sum().ToHours());
+                app.Replace("vkr_mag_vsego", plan.GroupedPredmets
+
+                   .Select(p => p.Hours[12])
+                   .Sum().ToHours());
+
+                app.Replace("uch_vsego", plan.GroupedPredmets
+
+                   .Select(p => p.Hours.Sum())
+                   .Sum().ToHours());
+            }
+
+            for (int pr = 1, i = 0; pr <= 20; pr++, i++)
+            {
+                var gps = plan.GroupedPredmetsDop;
+                if (i < gps.Count)
+                {
+                    var gp = gps[i];
+                    app.Replace($"{pr}pd_sem", gp.Sem);
+                    app.Replace($"{pr}pd_nazv",
+                        $"{gp.Name} {string.Join(", ", gp.Groups.Select(group => $"({group})").ToArray())}");
+                    for (int k = 0; k <= 12; k++)
+                    {
+                        string str;
+                        if (gp.Hours[k] == 0)
+                            str = "-";
+                        else
+                            str = gp.Hours[k].ToString();
+                        app.Replace($"{pr}pd_{k + 1}", str);
+                    }
+                }
+                else
+                    break;
+                //else
+                //{
+                //    app.Replace($"{pr}pd_sem", "");
+                //    app.Replace($"{pr}pd_nazv", "");
+                //    for (int k = 0; k <= 12; k++)
+                //    {
+                //        app.Replace($"{pr}pd_{k + 1}", "");
+                //    }
+                //}
+            }
+            tables = doc.Tables;
+            tb = tables[5];
+            rowstodelete = 20 - plan.GroupedPredmetsDop.Count;
+            for (int i = 0; i < rowstodelete; i++)
+            {
+                tb.Cell(plan.GroupedPredmetsDop.Count + 3, 1).Select();
+                app.Selection.SelectRow();
+                app.Selection.Cells.Delete();
+            }
+
+            {
+                app.Replace("dlek_osen", plan.GroupedPredmetsDop
+                .Where(p => p.Period == "осень")
+                .Select(p => p.Hours[0])
+                .Sum().ToHours());
+                app.Replace("dlab_osen", plan.GroupedPredmetsDop
+                    .Where(p => p.Period == "осень")
+                    .Select(p => p.Hours[1])
+                    .Sum().ToHours());
+                app.Replace("dsem_osen", plan.GroupedPredmetsDop
+                    .Where(p => p.Period == "осень")
+                    .Select(p => p.Hours[2])
+                    .Sum().ToHours());
+                app.Replace("dkurs_osen", plan.GroupedPredmetsDop
+                    .Where(p => p.Period == "осень")
+                    .Select(p => p.Hours[3])
+                    .Sum().ToHours());
+                app.Replace("dind_osen", plan.GroupedPredmetsDop
+                    .Where(p => p.Period == "осень")
+                    .Select(p => p.Hours[4])
+                    .Sum().ToHours());
+                app.Replace("dprakt_osen", plan.GroupedPredmetsDop
+                    .Where(p => p.Period == "осень")
+                    .Select(p => p.Hours[5])
+                    .Sum().ToHours());
+                app.Replace("dpred_spec_osen", plan.GroupedPredmetsDop
+                    .Where(p => p.Period == "осень")
+                    .Select(p => p.Hours[6])
+                    .Sum().ToHours());
+                app.Replace("dvkr_spec_osen", plan.GroupedPredmetsDop
+                    .Where(p => p.Period == "осень")
+                    .Select(p => p.Hours[7])
+                    .Sum().ToHours());
+                app.Replace("dpred_bak_osen", plan.GroupedPredmetsDop
+                    .Where(p => p.Period == "осень")
+                    .Select(p => p.Hours[8])
+                    .Sum().ToHours());
+                app.Replace("dvkr_bak_osen", plan.GroupedPredmetsDop
+                    .Where(p => p.Period == "осень")
+                    .Select(p => p.Hours[9])
+                    .Sum().ToHours());
+                app.Replace("dmag_osen", plan.GroupedPredmetsDop
+                    .Where(p => p.Period == "осень")
+                    .Select(p => p.Hours[10])
+                    .Sum().ToHours());
+                app.Replace("dmag_kons_osen", plan.GroupedPredmetsDop
+                   .Where(p => p.Period == "осень")
+                   .Select(p => p.Hours[11])
+                   .Sum().ToHours());
+                app.Replace("dvkr_mag_osen", plan.GroupedPredmetsDop
+                   .Where(p => p.Period == "осень")
+                   .Select(p => p.Hours[12])
+                   .Sum().ToHours());
+
+                app.Replace("duch_vsego_osen", plan.GroupedPredmetsDop
+                   .Where(p => p.Period == "осень")
+                   .Select(p => p.Hours.Sum())
+                   .Sum().ToHours());
+            }
+
+            {
+                app.Replace("dlek_vesna", plan.GroupedPredmetsDop
+                .Where(p => p.Period == "весна")
+                .Select(p => p.Hours[0])
+                .Sum().ToHours());
+                app.Replace("dlab_vesna", plan.GroupedPredmetsDop
+                    .Where(p => p.Period == "весна")
+                    .Select(p => p.Hours[1])
+                    .Sum().ToHours());
+                app.Replace("dsem_vesna", plan.GroupedPredmetsDop
+                    .Where(p => p.Period == "весна")
+                    .Select(p => p.Hours[2])
+                    .Sum().ToHours());
+                app.Replace("dkurs_vesna", plan.GroupedPredmetsDop
+                    .Where(p => p.Period == "весна")
+                    .Select(p => p.Hours[3])
+                    .Sum().ToHours());
+                app.Replace("dind_vesna", plan.GroupedPredmetsDop
+                    .Where(p => p.Period == "весна")
+                    .Select(p => p.Hours[4])
+                    .Sum().ToHours());
+                app.Replace("dprakt_vesna", plan.GroupedPredmetsDop
+                    .Where(p => p.Period == "весна")
+                    .Select(p => p.Hours[5])
+                    .Sum().ToHours());
+                app.Replace("dpred_spec_vesna", plan.GroupedPredmetsDop
+                    .Where(p => p.Period == "весна")
+                    .Select(p => p.Hours[6])
+                    .Sum().ToHours());
+                app.Replace("dvkr_spec_vesna", plan.GroupedPredmetsDop
+                    .Where(p => p.Period == "весна")
+                    .Select(p => p.Hours[7])
+                    .Sum().ToHours());
+                app.Replace("dpred_bak_vesna", plan.GroupedPredmetsDop
+                    .Where(p => p.Period == "весна")
+                    .Select(p => p.Hours[8])
+                    .Sum().ToHours());
+                app.Replace("dvkr_bak_vesna", plan.GroupedPredmetsDop
+                    .Where(p => p.Period == "весна")
+                    .Select(p => p.Hours[9])
+                    .Sum().ToHours());
+                app.Replace("dmag_vesna", plan.GroupedPredmetsDop
+                    .Where(p => p.Period == "весна")
+                    .Select(p => p.Hours[10])
+                    .Sum().ToHours());
+                app.Replace("dmag_kons_vesna", plan.GroupedPredmetsDop
+                   .Where(p => p.Period == "весна")
+                   .Select(p => p.Hours[11])
+                   .Sum().ToHours());
+                app.Replace("dvkr_mag_vesna", plan.GroupedPredmetsDop
+                   .Where(p => p.Period == "весна")
+                   .Select(p => p.Hours[12])
+                   .Sum().ToHours());
+
+                app.Replace("duch_vsego_vesna", plan.GroupedPredmetsDop
+                   .Where(p => p.Period == "весна")
+                   .Select(p => p.Hours.Sum())
+                   .Sum().ToHours());
+            }
+
+            {
+                app.Replace("dlek_vsego", plan.GroupedPredmetsDop
+
+                .Select(p => p.Hours[0])
+                .Sum().ToHours());
+                app.Replace("dlab_vsego", plan.GroupedPredmetsDop
+
+                    .Select(p => p.Hours[1])
+                    .Sum().ToHours());
+                app.Replace("dsem_vsego", plan.GroupedPredmetsDop
+
+                    .Select(p => p.Hours[2])
+                    .Sum().ToHours());
+                app.Replace("dkurs_vsego", plan.GroupedPredmetsDop
+
+                    .Select(p => p.Hours[3])
+                    .Sum().ToHours());
+                app.Replace("dind_vsego", plan.GroupedPredmetsDop
+
+                    .Select(p => p.Hours[4])
+                    .Sum().ToHours());
+                app.Replace("dprakt_vsego", plan.GroupedPredmetsDop
+
+                    .Select(p => p.Hours[5])
+                    .Sum().ToHours());
+                app.Replace("dpred_spec_vsego", plan.GroupedPredmetsDop
+
+                    .Select(p => p.Hours[6])
+                    .Sum().ToHours());
+                app.Replace("dvkr_spec_vsego", plan.GroupedPredmetsDop
+
+                    .Select(p => p.Hours[7])
+                    .Sum().ToHours());
+                app.Replace("dpred_bak_vsego", plan.GroupedPredmetsDop
+
+                    .Select(p => p.Hours[8])
+                    .Sum().ToHours());
+                app.Replace("dvkr_bak_vsego", plan.GroupedPredmetsDop
+
+                    .Select(p => p.Hours[9])
+                    .Sum().ToHours());
+                app.Replace("dmag_vsego", plan.GroupedPredmetsDop
+
+                    .Select(p => p.Hours[10])
+                    .Sum().ToHours());
+                app.Replace("dmag_kons_vsego", plan.GroupedPredmetsDop
+
+                   .Select(p => p.Hours[11])
+                   .Sum().ToHours());
+                app.Replace("dvkr_mag_vsego", plan.GroupedPredmetsDop
+
+                   .Select(p => p.Hours[12])
+                   .Sum().ToHours());
+
+                app.Replace("duch_vsego", plan.GroupedPredmetsDop
+
+                   .Select(p => p.Hours.Sum())
+                   .Sum().ToHours());
+            }
+
+
+            doc.Save();
+            System.Windows.MessageBox.Show($"План {plan.NameRP} сгенерирован!");
+        }
     }
 
 
@@ -583,6 +721,57 @@ namespace IP_PPS
         public void OnPropertyChanged(string name)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+    }
+
+    public static class DocExtensions
+    {
+        private static void FindAndReplace(Microsoft.Office.Interop.Word.Application doc, object findText, object replaceWithText)
+        {
+            //options
+            object matchCase = true;
+            object matchWholeWord = false;
+            object matchWildCards = false;
+            object matchSoundsLike = false;
+            object matchAllWordForms = false;
+            object forward = true;
+            object format = false;
+            object matchKashida = false;
+            object matchDiacritics = false;
+            object matchAlefHamza = false;
+            object matchControl = false;
+            object read_only = false;
+            object visible = true;
+            object replace = 2;
+            object wrap = 1;
+            //execute find and replace
+            doc.Selection.Find.Execute(ref findText, ref matchCase, ref matchWholeWord,
+                ref matchWildCards, ref matchSoundsLike, ref matchAllWordForms, ref forward, ref wrap, ref format, ref replaceWithText, ref replace,
+                ref matchKashida, ref matchDiacritics, ref matchAlefHamza, ref matchControl);
+        }
+
+        public static void Replace(this Word.Application doc, string key, object value)
+        {
+            FindAndReplace(doc, $"%{key}%", value.ToString());
+        }
+        public static void Replace(this Word.Application doc, string key, string value)
+        {
+            FindAndReplace(doc, $"%{key}%", value);
+        }
+
+
+        public static void ReplaceStr(this Word.Application doc, string str, string value)
+        {
+            FindAndReplace(doc, str, value);
+        }
+
+
+        public static string ToHours(this decimal hours)
+        {
+            if (hours == 0)
+                return "-";
+            else
+                return hours.ToString();
         }
     }
 }
