@@ -85,7 +85,10 @@
                     <TextBox Text="{Binding StazhStr}"></TextBox>
 
                     <TextBlock>Ставка</TextBlock>
-                    <TextBlock Text="{Binding Stavka}"></TextBlock>
+                    <Label Content="{Binding Stavka}"></Label>
+
+                    <TextBlock>Вид трудоустройства</TextBlock>
+                    <Label Content="{Binding Trudoustr}"></Label>
                 </StackPanel>
             </TabItem>
 
