@@ -206,8 +206,13 @@ namespace IP_PPS
         {
             get
             {
-                decimal leftHours = HoursToCount - 20;
+                decimal leftHours = HoursToCount - 20m - (kafuch ? 20m : 0m);
                 leftHours -= foses.Select(f => f.Hours).Sum();
+
+                leftHours -= uchmetodorg.Select(f => f.Hours).Sum();
+                leftHours -= metodob.Select(f => f.Hours).Sum();
+                leftHours -= crc.Select(f => f.Hours).Sum();
+
                 leftHours -= nauchorg.Select(f => f.Hours).Sum();
                 leftHours -= nauchissl.Select(f => f.Hours).Sum();
                 leftHours -= nauchmetod.Select(f => f.Hours).Sum();
@@ -272,8 +277,13 @@ namespace IP_PPS
             {
                 if (HoursToCount == 0m)
                     return 0m;
-                decimal leftHours = HoursToCount - 20;
+                decimal leftHours = HoursToCount - 20m - (kafuch ? 20m : 0m);
                 leftHours -= foses.Select(f => f.Hours).Sum();
+
+                leftHours -= uchmetodorg.Select(f => f.Hours).Sum();
+                leftHours -= metodob.Select(f => f.Hours).Sum();
+                leftHours -= crc.Select(f => f.Hours).Sum();
+
                 leftHours -= nauchorg.Select(f => f.Hours).Sum();
                 leftHours -= nauchissl.Select(f => f.Hours).Sum();
                 leftHours -= nauchmetod.Select(f => f.Hours).Sum();
@@ -325,6 +335,18 @@ namespace IP_PPS
             Foses.CollectionChanged += (sender, e) =>
             {
                 UpdateFoses();
+            };
+            UchMetodOrg.CollectionChanged += (sender, e) =>
+            {
+                UpdateUchMetodOrg();
+            };
+            MetodOb.CollectionChanged += (sender, e) =>
+            {
+                UpdateMetodOb();
+            };
+            CRC.CollectionChanged += (sender, e) =>
+            {
+                UpdateCRC();
             };
             NauchOrg.CollectionChanged += (sender, e) =>
             {
@@ -400,6 +422,103 @@ namespace IP_PPS
             }
         }
         #endregion
+
+
+        #region uchmetodorg
+
+        public List<(string UchMetodOrg, decimal Hours, string Period)> uchmetodorg = new List<(string UchMetodOrg, decimal Hours, string Period)>();
+
+
+        public void UpdateUchMetodOrg()
+        {
+            uchmetodorg.Clear();
+            foreach (var r in UchMetodOrg)
+            {
+                if (r.Period != null && CheckPeriod(r.Period))
+                    uchmetodorg.Add((r.Name, Convert.ToDecimal(r.Hours), r.Period));
+            }
+            OnDistribute();
+        }
+        public ObservableCollection<Rabota> UchMetodOrg
+        {
+            get;
+        } = new ObservableCollection<Rabota>();
+        Rabota selectedUchMetodOrg;
+        public Rabota SelectedUchMetodOrg
+        {
+            get => selectedUchMetodOrg;
+            set
+            {
+                selectedUchMetodOrg = value;
+                OnPropertyChanged(nameof(SelectedUchMetodOrg));
+            }
+        }
+        #endregion
+
+
+        #region metodob
+
+        public List<(string MetodOb, decimal Hours, string Period)> metodob = new List<(string MetodOb, decimal Hours, string Period)>();
+
+
+        public void UpdateMetodOb()
+        {
+            metodob.Clear();
+            foreach (var r in MetodOb)
+            {
+                if (r.Period != null && CheckPeriod(r.Period))
+                    metodob.Add((r.Name, Convert.ToDecimal(r.Hours), r.Period));
+            }
+            OnDistribute();
+        }
+        public ObservableCollection<Rabota> MetodOb
+        {
+            get;
+        } = new ObservableCollection<Rabota>();
+        Rabota selectedMetodOb;
+        public Rabota SelectedMetodOb
+        {
+            get => selectedMetodOb;
+            set
+            {
+                selectedMetodOb = value;
+                OnPropertyChanged(nameof(SelectedMetodOb));
+            }
+        }
+        #endregion
+
+
+        #region CRC
+
+        public List<(string Crc, decimal Hours, string Period)> crc = new List<(string Crc, decimal Hours, string Period)>();
+
+
+        public void UpdateCRC()
+        {
+            crc.Clear();
+            foreach (var r in CRC)
+            {
+                if (r.Period != null && CheckPeriod(r.Period))
+                    crc.Add((r.Name, Convert.ToDecimal(r.Hours), r.Period));
+            }
+            OnDistribute();
+        }
+        public ObservableCollection<Rabota> CRC
+        {
+            get;
+        } = new ObservableCollection<Rabota>();
+        Rabota selectedCRC;
+        public Rabota SelectedCRC
+        {
+            get => selectedCRC;
+            set
+            {
+                selectedCRC = value;
+                OnPropertyChanged(nameof(SelectedCRC));
+            }
+        }
+        #endregion
+
 
         #region nauchorg
 
@@ -529,11 +648,11 @@ namespace IP_PPS
 
         #region kval
 
-        public List<(string Ispob, decimal Hours, string Period)> kval = new List<(string Nauchorg, decimal Hours, string Period)>();
+        public List<(string Kval, decimal Hours, string Period)> kval = new List<(string Kval, decimal Hours, string Period)>();
 
         public void UpdateKval()
         {
-            ispob.Clear();
+            kval.Clear();
             foreach (var r in Kval)
             {
                 if (r.Period != null && CheckPeriod(r.Period))
@@ -557,13 +676,42 @@ namespace IP_PPS
         }
         #endregion
 
+        bool kafuch = false;
+        public bool KafUch { get => kafuch;
+        set
+            {
+                kafuch = value;
+                OnPropertyChanged(nameof(KafUch));
+                OnDistribute();
+            }
+        }
+
+
+        bool asp = false;
+        public bool Asp
+        {
+            get => asp;
+            set
+            {
+                asp = value;
+                OnPropertyChanged(nameof(Asp));
+                OnDistribute();
+            }
+        }
+        public List<Predmet> asppredmets = new List<Predmet>();
+
         public decimal HoursEntered =>
             foses.Select(r => r.Hours).Sum() +
+
+            uchmetodorg.Select(r => r.Hours).Sum() +
+            metodob.Select(r => r.Hours).Sum() +
+            crc.Select(r => r.Hours).Sum() +
+
             nauchorg.Select(r => r.Hours).Sum() +
             nauchissl.Select(r => r.Hours).Sum() +
             nauchmetod.Select(r => r.Hours).Sum() +
             ispob.Select(r => r.Hours).Sum() +
-            kval.Select(r => r.Hours).Sum() + 20m;
+            kval.Select(r => r.Hours).Sum() + 20m + (kafuch ? 20m : 0m);
     }
 
 

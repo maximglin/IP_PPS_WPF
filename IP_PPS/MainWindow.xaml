@@ -99,32 +99,86 @@
                         AutoGenerateColumns="True"
                         ColumnWidth="*" CanUserAddRows="false" IsReadOnly="true"></DataGrid>
             </TabItem>
-
+            <TabItem Header="3 таблица">
+                <WrapPanel>
+                    <TextBlock>Есть аспиранты</TextBlock>
+                    <CheckBox IsChecked="{Binding Asp}"></CheckBox>
+                </WrapPanel>
+            </TabItem>
             <TabItem Header="4 таблица">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="auto"></RowDefinition>
-                        <RowDefinition Height="1.5*"></RowDefinition>
-                        <RowDefinition></RowDefinition>
-                    </Grid.RowDefinitions>
-                    <DataGrid Grid.Row="1"
+                <TabControl>
+                    <TabItem Header="Заполнение">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto"></RowDefinition>
+                                <RowDefinition></RowDefinition>
+                                <RowDefinition Height="auto"></RowDefinition>
+                                <RowDefinition></RowDefinition>
+                                <RowDefinition Height="auto"></RowDefinition>
+                                <RowDefinition></RowDefinition>
+                                <RowDefinition Height="auto"></RowDefinition>
+                                <RowDefinition></RowDefinition>
+                            </Grid.RowDefinitions>
+                            <WrapPanel Grid.Row="0">
+                                <Button Grid.Row="0" Click="Button_Click_1">Add</Button>
+                                <Button Grid.Row="0" Click="RButton_Click_1">Remove</Button>
+                                <TextBlock>Фосы и РПД</TextBlock>
+                            </WrapPanel>
+                            <DataGrid Grid.Row="1"
                         ItemsSource="{Binding Foses}"
                         SelectedItem="{Binding SelectedFos}"
                         AutoGenerateColumns="True"
                         ColumnWidth="*">
-                    </DataGrid>
-                    <WrapPanel Grid.Row="0">
-                        <Button Grid.Row="0" Click="Button_Click_1">Add</Button>
-                        <Button Grid.Row="0" Click="RButton_Click_1">Remove</Button>
-                        <TextBlock>Фосы и РПД</TextBlock>
-                    </WrapPanel>
+                            </DataGrid>
 
-                    <DataGrid Grid.Row="2"
+                            <WrapPanel Grid.Row="2">
+                                <Button Grid.Row="2" Click="Button_Click_10">Add</Button>
+                                <Button Grid.Row="2" Click="RButton_Click_10">Remove</Button>
+                                <TextBlock>Учебно-методическая организационная работа</TextBlock>
+                            </WrapPanel>
+                            <DataGrid Grid.Row="3"
+                        ItemsSource="{Binding UchMetodOrg}"
+                        SelectedItem="{Binding SelectedUchMetodOrg}"
+                        AutoGenerateColumns="True"
+                        ColumnWidth="*">
+                            </DataGrid>
+
+
+                            <WrapPanel Grid.Row="4">
+                                <Button Grid.Row="4" Click="Button_Click_11">Add</Button>
+                                <Button Grid.Row="4" Click="RButton_Click_11">Remove</Button>
+                                <TextBlock>Методическое обеспечение дисциплины</TextBlock>
+                            </WrapPanel>
+                            <DataGrid Grid.Row="5"
+                        ItemsSource="{Binding MetodOb}"
+                        SelectedItem="{Binding SelectedMetodOb}"
+                        AutoGenerateColumns="True"
+                        ColumnWidth="*">
+                            </DataGrid>
+
+
+                            <WrapPanel Grid.Row="6">
+                                <Button Grid.Row="6" Click="Button_Click_12">Add</Button>
+                                <Button Grid.Row="6" Click="RButton_Click_12">Remove</Button>
+                                <TextBlock>Методическое обеспечение CRC</TextBlock>
+                            </WrapPanel>
+                            <DataGrid Grid.Row="7"
+                        ItemsSource="{Binding CRC}"
+                        SelectedItem="{Binding SelectedCRC}"
+                        AutoGenerateColumns="True"
+                        ColumnWidth="*">
+                            </DataGrid>
+
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Подготовка к предметам (авто)">
+                        <DataGrid
                         ItemsSource="{Binding MetodPredmets}"
                         AutoGenerateColumns="True"
                         ColumnWidth="*" CanUserAddRows="false" IsReadOnly="true"></DataGrid>
-                </Grid>
-                
+                    </TabItem>
+                </TabControl>
+
             </TabItem>
             <TabItem Header="5 таблица">
 
@@ -176,17 +230,22 @@
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto"></RowDefinition>
+                        <RowDefinition Height="auto"></RowDefinition>
                         <RowDefinition></RowDefinition>
                     </Grid.RowDefinitions>
-                    <DataGrid Grid.Row="1"
+                    <WrapPanel Grid.Row="0">
+                        <TextBlock>Участие в работе учебно-методической группы кафедры</TextBlock>
+                        <CheckBox IsChecked="{Binding KafUch}"></CheckBox>
+                    </WrapPanel>
+                    <DataGrid Grid.Row="2"
                         ItemsSource="{Binding Ispob}"
                         SelectedItem="{Binding SelectedIspob}"
                         AutoGenerateColumns="True"
                         ColumnWidth="*">
                     </DataGrid>
-                    <WrapPanel Grid.Row="0">
-                        <Button Grid.Row="0" Click="Button_Click_7">Add</Button>
-                        <Button Grid.Row="0" Click="RButton_Click_7">Remove</Button>
+                    <WrapPanel Grid.Row="1">
+                        <Button Click="Button_Click_7">Add</Button>
+                        <Button Click="RButton_Click_7">Remove</Button>
                         <TextBlock>Исполнение обязанностей</TextBlock>
                     </WrapPanel>
 

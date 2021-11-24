@@ -230,7 +230,38 @@ namespace IP_PPS
 
 
 
-       
+        private void Button_Click_10(object sender, RoutedEventArgs e)
+        {
+            data.SelectedPlan.UchMetodOrg.Add(new Plan.Rabota(data.SelectedPlan.UpdateUchMetodOrg));
+        }
+        private void RButton_Click_10(object sender, RoutedEventArgs e)
+        {
+            if (data.SelectedPlan.SelectedUchMetodOrg != null)
+                data.SelectedPlan.UchMetodOrg.Remove(data.SelectedPlan.SelectedUchMetodOrg);
+        }
+
+        private void Button_Click_11(object sender, RoutedEventArgs e)
+        {
+            data.SelectedPlan.MetodOb.Add(new Plan.Rabota(data.SelectedPlan.UpdateMetodOb));
+        }
+        private void RButton_Click_11(object sender, RoutedEventArgs e)
+        {
+            if (data.SelectedPlan.SelectedMetodOb != null)
+                data.SelectedPlan.MetodOb.Remove(data.SelectedPlan.SelectedMetodOb);
+        }
+
+
+        private void Button_Click_12(object sender, RoutedEventArgs e)
+        {
+            data.SelectedPlan.CRC.Add(new Plan.Rabota(data.SelectedPlan.UpdateCRC));
+        }
+        private void RButton_Click_12(object sender, RoutedEventArgs e)
+        {
+            if (data.SelectedPlan.SelectedCRC != null)
+                data.SelectedPlan.CRC.Remove(data.SelectedPlan.SelectedCRC);
+        }
+
+
         private void Button_Click_9(object sender, RoutedEventArgs e)
         {
             Word.Application app = new Microsoft.Office.Interop.Word.Application { Visible = true };
@@ -257,6 +288,9 @@ namespace IP_PPS
             doc.Activate();
             doc.SelectAllEditableRanges();
 
+            int tableOffset = 0;
+            Dictionary<int, decimal> osenHours = new Dictionary<int, decimal>();
+            Dictionary<int, decimal> vesnaHours = new Dictionary<int, decimal>();
 
             app.Replace("dolzhnost", plan.Dolzhnost);
             app.Replace("dolzhrp", plan.DolzhnostRP);
@@ -302,14 +336,16 @@ namespace IP_PPS
                 //    }
                 //}
             }
-            var tables = doc.Tables;
-            var tb = tables[3];
-            var rowstodelete = 20 - plan.GroupedPredmets.Count;
-            for (int i = 0; i < rowstodelete; i++)
-            { 
-                tb.Cell(plan.GroupedPredmets.Count + 3, 1).Select();
-                app.Selection.SelectRow();
-                app.Selection.Cells.Delete();
+            {
+                var tables = doc.Tables;
+                var tb = tables[3];
+                var rowstodelete = 20 - plan.GroupedPredmets.Count;
+                for (int i = 0; i < rowstodelete; i++)
+                {
+                    tb.Cell(plan.GroupedPredmets.Count + 3, 1).Select();
+                    app.Selection.SelectRow();
+                    app.Selection.Cells.Delete();
+                }
             }
 
             {
@@ -370,8 +406,12 @@ namespace IP_PPS
                    .Where(p => p.Period == "осень")
                    .Select(p => p.Hours.Sum())
                    .Sum().ToHours());
+                osenHours.Add(1, plan.GroupedPredmets
+                   .Where(p => p.Period == "осень")
+                   .Select(p => p.Hours.Sum())
+                   .Sum());
             }
-            
+
             {
                 app.Replace("lek_vesna", plan.GroupedPredmets
                 .Where(p => p.Period == "весна")
@@ -430,6 +470,10 @@ namespace IP_PPS
                    .Where(p => p.Period == "весна")
                    .Select(p => p.Hours.Sum())
                    .Sum().ToHours());
+                vesnaHours.Add(1, plan.GroupedPredmets
+                   .Where(p => p.Period == "весна")
+                   .Select(p => p.Hours.Sum())
+                   .Sum());
             }
 
             {
@@ -492,48 +536,75 @@ namespace IP_PPS
                    .Sum().ToHours());
             }
 
-            if (plan.GroupedPredmetsDop.Count > 20)
-                System.Windows.MessageBox.Show("НУЖНО БОЛЬШЕ ЧЕМ 20 ЗАГЛУШЕК В ШАБЛОНЕ ДЛЯ ТАБЛИЦЫ 2.2");
-            for (int pr = 1, i = 0; pr <= 20; pr++, i++)
+            if (plan.GroupedPredmetsDop.Count > 0)
             {
-                var gps = plan.GroupedPredmetsDop;
-                if (i < gps.Count)
+
+                if (plan.GroupedPredmetsDop.Count > 20)
+                    System.Windows.MessageBox.Show("НУЖНО БОЛЬШЕ ЧЕМ 20 ЗАГЛУШЕК В ШАБЛОНЕ ДЛЯ ТАБЛИЦЫ 2.2");
+                for (int pr = 1, i = 0; pr <= 20; pr++, i++)
                 {
-                    var gp = gps[i];
-                    app.Replace($"{pr}pd_sem", gp.Sem);
-                    app.Replace($"{pr}pd_nazv",
-                        $"{gp.Name} {string.Join(", ", gp.Groups.Select(group => $"({group})").ToArray())}");
-                    for (int k = 0; k <= 12; k++)
+                    var gps = plan.GroupedPredmetsDop;
+                    if (i < gps.Count)
                     {
-                        string str;
-                        if (gp.Hours[k] == 0)
-                            str = "-";
-                        else
-                            str = gp.Hours[k].ToString();
-                        app.Replace($"{pr}pd_{k + 1}", str);
+                        var gp = gps[i];
+                        app.Replace($"{pr}pd_sem", gp.Sem);
+                        app.Replace($"{pr}pd_nazv",
+                            $"{gp.Name} {string.Join(", ", gp.Groups.Select(group => $"({group})").ToArray())}");
+                        for (int k = 0; k <= 12; k++)
+                        {
+                            string str;
+                            if (gp.Hours[k] == 0)
+                                str = "-";
+                            else
+                                str = gp.Hours[k].ToString();
+                            app.Replace($"{pr}pd_{k + 1}", str);
+                        }
                     }
+                    else
+                        break;
+                    //else
+                    //{
+                    //    app.Replace($"{pr}pd_sem", "");
+                    //    app.Replace($"{pr}pd_nazv", "");
+                    //    for (int k = 0; k <= 12; k++)
+                    //    {
+                    //        app.Replace($"{pr}pd_{k + 1}", "");
+                    //    }
+                    //}
                 }
-                else
-                    break;
-                //else
-                //{
-                //    app.Replace($"{pr}pd_sem", "");
-                //    app.Replace($"{pr}pd_nazv", "");
-                //    for (int k = 0; k <= 12; k++)
-                //    {
-                //        app.Replace($"{pr}pd_{k + 1}", "");
-                //    }
-                //}
+
+                var tables = doc.Tables;
+                var tb = tables[5];
+                var rowstodelete = 20 - plan.GroupedPredmetsDop.Count;
+                for (int i = 0; i < rowstodelete; i++)
+                {
+                    tb.Cell(plan.GroupedPredmetsDop.Count + 3, 1).Select();
+                    app.Selection.SelectRow();
+                    app.Selection.Cells.Delete();
+                }
+
+                //app.Replace("22nepredusmotr", "");
+                app.Replace("21zagolovok", "\t\t\t\t\t2.1. Сводные данные");
+                //2.2. Занятия по учебным дисциплинам
+                app.Replace("22zagolovok", "2.2. Занятия по учебным дисциплинам");
             }
-            tables = doc.Tables;
-            tb = tables[5];
-            rowstodelete = 20 - plan.GroupedPredmetsDop.Count;
-            for (int i = 0; i < rowstodelete; i++)
+            else
             {
-                tb.Cell(plan.GroupedPredmetsDop.Count + 3, 1).Select();
-                app.Selection.SelectRow();
-                app.Selection.Cells.Delete();
+                app.Replace("21zagolovok", "Не предусмотрено.");
+                app.Replace("22zagolovok", "");
+
+                var tables = doc.Tables;
+                var tb = tables[4];
+                tb.Delete();
+                tableOffset++;
+
+
+                tables = doc.Tables;
+                tb = tables[5 - tableOffset];
+                tb.Delete();
+                tableOffset++;
             }
+
 
             {
                 app.Replace("dlek_osen", plan.GroupedPredmetsDop
@@ -593,6 +664,10 @@ namespace IP_PPS
                    .Where(p => p.Period == "осень")
                    .Select(p => p.Hours.Sum())
                    .Sum().ToHours());
+                osenHours.Add(2, plan.GroupedPredmetsDop
+                   .Where(p => p.Period == "осень")
+                   .Select(p => p.Hours.Sum())
+                   .Sum());
             }
 
             {
@@ -653,6 +728,10 @@ namespace IP_PPS
                    .Where(p => p.Period == "весна")
                    .Select(p => p.Hours.Sum())
                    .Sum().ToHours());
+                vesnaHours.Add(2, plan.GroupedPredmetsDop
+                   .Where(p => p.Period == "весна")
+                   .Select(p => p.Hours.Sum())
+                   .Sum());
             }
 
             {
@@ -716,7 +795,38 @@ namespace IP_PPS
             }
 
 
-            for (int pr = 1, i = 0; pr <= 8; pr++, i++)
+            if(plan.Asp == false)
+            {
+                var tables = doc.Tables;
+                var tb = tables[6 - tableOffset];
+                tableOffset++;
+                tb.Delete();
+
+
+                tables = doc.Tables;
+                tb = tables[7 - tableOffset];
+                tableOffset++;
+                tb.Delete();
+
+                //3.1. Сводные данные
+                //3.2. Занятия по учебным дисциплинам
+                app.Replace("31zagolovok", "Не предусмотрено.");
+                app.Replace("32zagolovok", "");
+                app.Replace("dop_asp_osen", "-");
+                app.Replace("dop_asp_vesna", "-");
+                app.Replace("dop_asp_vsego", "-");
+
+                osenHours.Add(3, 0m);
+                vesnaHours.Add(3, 0m);
+            }
+            else
+            {
+                app.Replace("31zagolovok", "\t\t\t\t\t3.1. Сводные данные");
+                app.Replace("32zagolovok", "3.2. Занятия по учебным дисциплинам");
+            }
+
+            //4 tablica
+            for (int pr = 1, i = 0; pr <= 11; pr++, i++)
             {
                 var mps = plan.MetodPredmets;
                 if (i < mps.Count)
@@ -739,47 +849,766 @@ namespace IP_PPS
                     app.Replace($"metod_pr{pr}_vesna_per", "");
                 }
             }
+
+
+            //uchmetodorg
             for (int pr = 1, i = 0; pr <= 5; pr++, i++)
             {
-                var mps = plan.foses;
+                var mps = plan.uchmetodorg.GroupBy(f => f.UchMetodOrg).ToList();
                 if (i < mps.Count)
                 {
                     var mp = mps[i];
-                    app.Replace($"fosrpd{pr}_nazv", mp.Fos);
-                    app.Replace($"fosrpd{pr}", mp.Hours);
-                    app.Replace($"fosrpd{pr}per", mp.Period);
+
+                    var m = mp.Select(f => f).ToList();
+                    var mosen = m.FirstOrDefault(f => f.Period == "осень");
+                    var mvesna = m.FirstOrDefault(f => f.Period == "весна");
+
+                    if (mosen.UchMetodOrg != null)
+                    {
+                        app.Replace($"uchmetodorg{pr}_nazv", mosen.UchMetodOrg);
+                        app.Replace($"uchmetodorg{pr}_osen", mosen.Hours);
+                        app.Replace($"uchmetodorg{pr}_osen_per", mosen.Period);
+                    }
+                    else
+                    {
+                        app.Replace($"uchmetodorg{pr}_osen", "-");
+                        app.Replace($"uchmetodorg{pr}_osen_per", "осень");
+                    }
+                    if (mvesna.UchMetodOrg != null)
+                    {
+                        app.Replace($"uchmetodorg{pr}_nazv", mvesna.UchMetodOrg);
+                        app.Replace($"uchmetodorg{pr}_vesna", mvesna.Hours);
+                        app.Replace($"uchmetodorg{pr}_vesna_per", mvesna.Period);
+                    }
+                    else
+                    {
+                        app.Replace($"uchmetodorg{pr}_vesna", "-");
+                        app.Replace($"uchmetodorg{pr}_vesna_per", "весна");
+                    }
 
                 }
                 else
                 {
-                    app.Replace($"fosrpd{pr}_nazv", "");
-                    app.Replace($"fosrpd{pr}", "");
-                    app.Replace($"fosrpd{pr}per", "");
+                    break;
                 }
             }
-            app.Replace("4vsego_osen", plan.foses
+            //metodob
+            for (int pr = 1, i = 0; pr <= 5; pr++, i++)
+            {
+                var mps = plan.metodob.GroupBy(f => f.MetodOb).ToList();
+                if (i < mps.Count)
+                {
+                    var mp = mps[i];
+
+                    var m = mp.Select(f => f).ToList();
+                    var mosen = m.FirstOrDefault(f => f.Period == "осень");
+                    var mvesna = m.FirstOrDefault(f => f.Period == "весна");
+
+                    if (mosen.MetodOb != null)
+                    {
+                        app.Replace($"metodob{pr}_nazv", mosen.MetodOb);
+                        app.Replace($"metodob{pr}_osen", mosen.Hours);
+                        app.Replace($"metodob{pr}_osen_per", mosen.Period);
+                    }
+                    else
+                    {
+                        app.Replace($"metodob{pr}_osen", "-");
+                        app.Replace($"metodob{pr}_osen_per", "осень");
+                    }
+                    if (mvesna.MetodOb != null)
+                    {
+                        app.Replace($"metodob{pr}_nazv", mvesna.MetodOb);
+                        app.Replace($"metodob{pr}_vesna", mvesna.Hours);
+                        app.Replace($"metodob{pr}_vesna_per", mvesna.Period);
+                    }
+                    else
+                    {
+                        app.Replace($"metodob{pr}_vesna", "-");
+                        app.Replace($"metodob{pr}_vesna_per", "весна");
+                    }
+
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            //crc
+            for (int pr = 1, i = 0; pr <= 5; pr++, i++)
+            {
+                var mps = plan.crc.GroupBy(f => f.Crc).ToList();
+                if (i < mps.Count)
+                {
+                    var mp = mps[i];
+
+                    var m = mp.Select(f => f).ToList();
+                    var mosen = m.FirstOrDefault(f => f.Period == "осень");
+                    var mvesna = m.FirstOrDefault(f => f.Period == "весна");
+
+                    if (mosen.Crc != null)
+                    {
+                        app.Replace($"metodCRC{pr}_nazv", mosen.Crc);
+                        app.Replace($"metodCRC{pr}_osen", mosen.Hours);
+                        app.Replace($"metodCRC{pr}_osen_per", mosen.Period);
+                    }
+                    else
+                    {
+                        app.Replace($"metodCRC{pr}_osen", "-");
+                        app.Replace($"metodCRC{pr}_osen_per", "осень");
+                    }
+                    if (mvesna.Crc != null)
+                    {
+                        app.Replace($"metodCRC{pr}_nazv", mvesna.Crc);
+                        app.Replace($"metodCRC{pr}_vesna", mvesna.Hours);
+                        app.Replace($"metodCRC{pr}_vesna_per", mvesna.Period);
+                    }
+                    else
+                    {
+                        app.Replace($"metodCRC{pr}_vesna", "-");
+                        app.Replace($"metodCRC{pr}_vesna_per", "весна");
+                    }
+
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            //foses
+            for (int pr = 1, i = 0; pr <= 10; pr++, i++)
+            {
+                var mps = plan.foses.GroupBy(f => f.Fos).ToList();
+                if (i < mps.Count)
+                {
+                    var mp = mps[i];
+
+                    var m = mp.Select(f => f).ToList();
+                    var mosen = m.FirstOrDefault(f => f.Period == "осень");
+                    var mvesna = m.FirstOrDefault(f => f.Period == "весна");
+
+                    if (mosen.Fos != null)
+                    {
+                        app.Replace($"fosrpd{pr}_nazv", mosen.Fos);
+                        app.Replace($"fosrpd{pr}_osen", mosen.Hours);
+                        app.Replace($"fosrpd{pr}osenper", mosen.Period);
+                    }
+                    else
+                    {
+                        app.Replace($"fosrpd{pr}_osen", "-");
+                        app.Replace($"fosrpd{pr}osenper", "осень");
+                    }
+                    if (mvesna.Fos != null)
+                    {
+                        app.Replace($"fosrpd{pr}_nazv", mvesna.Fos);
+                        app.Replace($"fosrpd{pr}_vesna", mvesna.Hours);
+                        app.Replace($"fosrpd{pr}vesnaper", mvesna.Period);
+                    }
+                    else
+                    {
+                        app.Replace($"fosrpd{pr}_vesna", "-");
+                        app.Replace($"fosrpd{pr}vesnaper", "весна");
+                    }
+
+                }
+                else
+                {
+                    break;
+                }
+            }
+            
+            osenHours.Add(4, plan.foses
                 .Where(f => f.Period == "осень")
                 .Select(f => f.Hours).Sum()
                 +
                 plan.MetodPredmets
                 .Select(p => p.Osen).Sum()
+                +
+                plan.uchmetodorg
+                .Where(f => f.Period == "осень")
+                .Select(f => f.Hours).Sum()
+                +
+                plan.metodob
+                .Where(f => f.Period == "осень")
+                .Select(f => f.Hours).Sum()
+                +
+                plan.crc
+                .Where(f => f.Period == "осень")
+                .Select(f => f.Hours).Sum()
                 );
-            app.Replace("4vsego_vesna", plan.foses
+            app.Replace("4vsego_osen", osenHours[4].ToHours());
+            vesnaHours.Add(4, plan.foses
                 .Where(f => f.Period == "весна")
                 .Select(f => f.Hours).Sum()
                 +
                 plan.MetodPredmets
                 .Select(p => p.Vesna).Sum()
-                );
-            app.Replace("4vsego", plan.foses
+                +
+                plan.uchmetodorg
+                .Where(f => f.Period == "весна")
+                .Select(f => f.Hours).Sum()
+                +
+                plan.metodob
+                .Where(f => f.Period == "весна")
+                .Select(f => f.Hours).Sum()
+                +
+                plan.crc
+                .Where(f => f.Period == "весна")
+                .Select(f => f.Hours).Sum());
+            app.Replace("4vsego_vesna", vesnaHours[4].ToHours());
+            app.Replace("4vsego", (plan.foses
                 .Select(f => f.Hours).Sum()
                 +
                 plan.MetodPredmets
                 .Select(p => p.Osen + p.Vesna).Sum()
+                +
+                plan.uchmetodorg
+                .Select(f => f.Hours).Sum()
+                +
+                plan.metodob
+                .Select(f => f.Hours).Sum()
+                +
+                plan.crc
+                .Select(f => f.Hours).Sum()).ToHours()
                 );
 
 
+            //delete empty foses rows
+            {
+                var tables = doc.Tables;
+                var tb = tables[8 - tableOffset];
+                var count = plan.foses.GroupBy(f => f.Fos).ToList().Count;
+                var rowstodelete = 10 - count;
 
+                for (int i = 0; i < rowstodelete; i++)
+                {
+                    tb.Cell(11 * 2 + 41 + count * 2, 1).Select();
+                    app.Selection.SelectRow();
+                    app.Selection.Cells.Delete();
+                }
+            }
+            //delete empty CRC rows
+            {
+                var tables = doc.Tables;
+                var tb = tables[8 - tableOffset];
+                var count = plan.crc.GroupBy(f => f.Crc).ToList().Count;
+                var rowstodelete = 5 - count;
+
+                for (int i = 0; i < rowstodelete; i++)
+                {
+                    tb.Cell(11 * 2 + 29 + count * 2, 1).Select();
+                    app.Selection.SelectRow();
+                    app.Selection.Cells.Delete();
+                }
+            }
+            //delete empty metod predmets rows
+            {
+                var tables = doc.Tables;
+                var tb = tables[8 - tableOffset];
+                var rowstodelete = 11 - plan.MetodPredmets.Count;
+                if (rowstodelete == 11)
+                    rowstodelete = 10;
+                for (int i = 0; i < rowstodelete; i++)
+                {
+                    tb.Cell(plan.MetodPredmets.Count * 2 + 28, 1).Select();
+                    app.Selection.SelectRow();
+                    app.Selection.Cells.Delete();
+                }
+            }
+            //delete empty metod ob rows
+            {
+                var tables = doc.Tables;
+                var tb = tables[8 - tableOffset];
+                var count = plan.metodob.GroupBy(f => f.MetodOb).ToList().Count;
+                var rowstodelete = 5 - count;
+
+                for (int i = 0; i < rowstodelete; i++)
+                {
+                    tb.Cell(15 + count * 2, 1).Select();
+                    app.Selection.SelectRow();
+                    app.Selection.Cells.Delete();
+                }
+            }
+            //delete empty uchmetodorg rows
+            {
+                var tables = doc.Tables;
+                var tb = tables[8 - tableOffset];
+                var count = plan.uchmetodorg.GroupBy(f => f.UchMetodOrg).ToList().Count;
+                var rowstodelete = 5 - count;
+
+                for (int i = 0; i < rowstodelete; i++)
+                {
+                    tb.Cell(3 + count * 2, 1).Select();
+                    app.Selection.SelectRow();
+                    app.Selection.Cells.Delete();
+                }
+            }
+
+
+            //5 tablica
+
+            if (plan.nauchorg.Count > 0 ||
+                plan.nauchissl.Count > 0 ||
+                plan.nauchmetod.Count > 0)
+            {
+                //nauchorg
+                for (int pr = 1, i = 0; pr <= 3; pr++, i++)
+                {
+                    var mps = plan.nauchorg.GroupBy(f => f.Nauchorg).ToList();
+                    if (i < mps.Count)
+                    {
+                        var mp = mps[i];
+
+                        var m = mp.Select(f => f).ToList();
+                        var mosen = m.FirstOrDefault(f => f.Period == "осень");
+                        var mvesna = m.FirstOrDefault(f => f.Period == "весна");
+
+                        if (mosen.Nauchorg != null)
+                        {
+                            app.Replace($"nauchorg{pr}_nazv", mosen.Nauchorg);
+                            app.Replace($"nauchorg{pr}_osen", mosen.Hours);
+                            app.Replace($"nauchorg{pr}_osen_per", mosen.Period);
+                        }
+                        else
+                        {
+                            app.Replace($"nauchorg{pr}_osen", "-");
+                            app.Replace($"nauchorg{pr}_osen_per", "осень");
+                        }
+                        if (mvesna.Nauchorg != null)
+                        {
+                            app.Replace($"nauchorg{pr}_nazv", mvesna.Nauchorg);
+                            app.Replace($"nauchorg{pr}_vesna", mvesna.Hours);
+                            app.Replace($"nauchorg{pr}_vesna_per", mvesna.Period);
+                        }
+                        else
+                        {
+                            app.Replace($"nauchorg{pr}_vesna", "-");
+                            app.Replace($"nauchorg{pr}_vesna_per", "весна");
+                        }
+
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                //nauchissl
+                for (int pr = 1, i = 0; pr <= 3; pr++, i++)
+                {
+                    var mps = plan.nauchissl.GroupBy(f => f.Nauchissl).ToList();
+                    if (i < mps.Count)
+                    {
+                        var mp = mps[i];
+
+                        var m = mp.Select(f => f).ToList();
+                        var mosen = m.FirstOrDefault(f => f.Period == "осень");
+                        var mvesna = m.FirstOrDefault(f => f.Period == "весна");
+
+                        if (mosen.Nauchissl != null)
+                        {
+                            app.Replace($"nauchissl{pr}_nazv", mosen.Nauchissl);
+                            app.Replace($"nauchissl{pr}_osen", mosen.Hours);
+                            app.Replace($"nauchissl{pr}_osen_per", mosen.Period);
+                        }
+                        else
+                        {
+                            app.Replace($"nauchissl{pr}_osen", "-");
+                            app.Replace($"nauchissl{pr}_osen_per", "осень");
+                        }
+                        if (mvesna.Nauchissl != null)
+                        {
+                            app.Replace($"nauchissl{pr}_nazv", mvesna.Nauchissl);
+                            app.Replace($"nauchissl{pr}_vesna", mvesna.Hours);
+                            app.Replace($"nauchissl{pr}_vesna_per", mvesna.Period);
+                        }
+                        else
+                        {
+                            app.Replace($"nauchissl{pr}_vesna", "-");
+                            app.Replace($"nauchissl{pr}_vesna_per", "весна");
+                        }
+
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                //nauchmetod
+                for (int pr = 1, i = 0; pr <= 3; pr++, i++)
+                {
+                    var mps = plan.nauchmetod.GroupBy(f => f.Nauchmetod).ToList();
+                    if (i < mps.Count)
+                    {
+                        var mp = mps[i];
+
+                        var m = mp.Select(f => f).ToList();
+                        var mosen = m.FirstOrDefault(f => f.Period == "осень");
+                        var mvesna = m.FirstOrDefault(f => f.Period == "весна");
+
+                        if (mosen.Nauchmetod != null)
+                        {
+                            app.Replace($"nauchmetod{pr}_nazv", mosen.Nauchmetod);
+                            app.Replace($"nauchmetod{pr}_osen", mosen.Hours);
+                            app.Replace($"nauchmetod{pr}_osen_per", mosen.Period);
+                        }
+                        else
+                        {
+                            app.Replace($"nauchmetod{pr}_osen", "-");
+                            app.Replace($"nauchmetod{pr}_osen_per", "осень");
+                        }
+                        if (mvesna.Nauchmetod != null)
+                        {
+                            app.Replace($"nauchmetod{pr}_nazv", mvesna.Nauchmetod);
+                            app.Replace($"nauchmetod{pr}_vesna", mvesna.Hours);
+                            app.Replace($"nauchmetod{pr}_vesna_per", mvesna.Period);
+                        }
+                        else
+                        {
+                            app.Replace($"nauchmetod{pr}_vesna", "-");
+                            app.Replace($"nauchmetod{pr}_vesna_per", "весна");
+                        }
+
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                //delete empty nauchmetod rows
+                {
+                    var tables = doc.Tables;
+                    var tb = tables[9 - tableOffset];
+                    var count = plan.nauchmetod.GroupBy(f => f.Nauchmetod).ToList().Count;
+                    var rowstodelete = 3 - count;
+
+                    for (int i = 0; i < rowstodelete; i++)
+                    {
+                        tb.Cell(19 + count * 2, 1).Select();
+                        app.Selection.SelectRow();
+                        app.Selection.Cells.Delete();
+                    }
+                }
+                //delete empty nauchissl rows
+                {
+                    var tables = doc.Tables;
+                    var tb = tables[9 - tableOffset];
+                    var count = plan.nauchissl.GroupBy(f => f.Nauchissl).ToList().Count;
+                    var rowstodelete = 3 - count;
+
+                    for (int i = 0; i < rowstodelete; i++)
+                    {
+                        tb.Cell(11 + count * 2, 1).Select();
+                        app.Selection.SelectRow();
+                        app.Selection.Cells.Delete();
+                    }
+                }
+                //delete empty nauchorg rows
+                {
+                    var tables = doc.Tables;
+                    var tb = tables[9 - tableOffset];
+                    var count = plan.nauchorg.GroupBy(f => f.Nauchorg).ToList().Count;
+                    var rowstodelete = 3 - count;
+
+                    for (int i = 0; i < rowstodelete; i++)
+                    {
+                        tb.Cell(3 + count * 2, 1).Select();
+                        app.Selection.SelectRow();
+                        app.Selection.Cells.Delete();
+                    }
+                }
+
+                app.Replace("5nepredusmotr", "");
+            }
+            else
+            {
+                var tables = doc.Tables;
+                var tb = tables[9 - tableOffset];
+                tb.Delete();
+                tableOffset++;
+                app.Replace("5nepredusmotr", "Не предусмотрено.");
+            }
+
+            osenHours.Add(5, plan.nauchorg
+                .Where(n => n.Period == "осень")
+                .Select(n => n.Hours).Sum()
+                +
+                plan.nauchissl
+                .Where(n => n.Period == "осень")
+                .Select(n => n.Hours).Sum()
+                +
+                plan.nauchmetod
+                .Where(n => n.Period == "осень")
+                .Select(n => n.Hours).Sum());
+            app.Replace("5osen", osenHours[5].ToHours());
+            vesnaHours.Add(5, plan.nauchorg
+                .Where(n => n.Period == "весна")
+                .Select(n => n.Hours).Sum()
+                +
+                plan.nauchissl
+                .Where(n => n.Period == "весна")
+                .Select(n => n.Hours).Sum()
+                +
+                plan.nauchmetod
+                .Where(n => n.Period == "весна")
+                .Select(n => n.Hours).Sum());
+            app.Replace("5vesna", vesnaHours[5].ToHours());
+            app.Replace("5vsego", (plan.nauchorg
+                .Select(n => n.Hours).Sum()
+                +
+                plan.nauchissl
+                .Select(n => n.Hours).Sum()
+                +
+                plan.nauchmetod
+                .Select(n => n.Hours).Sum()).ToHours()
+                );
+
+            
+
+
+            //6 tablica 
+            //ispob
+            for (int pr = 1, i = 0; pr <= 3; pr++, i++)
+            {
+                var mps = plan.ispob.GroupBy(f => f.Ispob).ToList();
+                if (i < mps.Count)
+                {
+                    var mp = mps[i];
+
+                    var m = mp.Select(f => f).ToList();
+                    var mosen = m.FirstOrDefault(f => f.Period == "осень");
+                    var mvesna = m.FirstOrDefault(f => f.Period == "весна");
+
+                    if (mosen.Ispob != null)
+                    {
+                        app.Replace($"ispob{pr}_nazv", mosen.Ispob);
+                        app.Replace($"ispob{pr}_osen", mosen.Hours);
+                        app.Replace($"ispob{pr}_osen_per", mosen.Period);
+                    }
+                    else
+                    {
+                        app.Replace($"ispob{pr}_osen", "-");
+                        app.Replace($"ispob{pr}_osen_per", "осень");
+                    }
+                    if (mvesna.Ispob != null)
+                    {
+                        app.Replace($"ispob{pr}_nazv", mvesna.Ispob);
+                        app.Replace($"ispob{pr}_vesna", mvesna.Hours);
+                        app.Replace($"ispob{pr}_vesna_per", mvesna.Period);
+                    }
+                    else
+                    {
+                        app.Replace($"ispob{pr}_vesna", "-");
+                        app.Replace($"ispob{pr}_vesna_per", "весна");
+                    }
+
+                }
+                else
+                {
+                    break;
+                }
+            }
+            //delete empty ispob rows
+            {
+                var tables = doc.Tables;
+                var tb = tables[10 - tableOffset];
+                var count = plan.ispob.GroupBy(f => f.Ispob).ToList().Count;
+                var rowstodelete = 3 - count;
+
+                for (int i = 0; i < rowstodelete; i++)
+                {
+                    tb.Cell(3 + count * 2, 1).Select();
+                    app.Selection.SelectRow();
+                    app.Selection.Cells.Delete();
+                }
+            }
+            if(plan.KafUch == true)
+            {
+                app.Replace("kafuch_nazv", "Участие в работе учебно-методической группы кафедры");
+                app.Replace("kafuch", "10");
+                app.Replace("kafuch_osen_per", "осень");
+                app.Replace("kafuch_vesna_per", "весна");
+            }
+            else
+            {
+                app.Replace("kafuch_nazv", "");
+                app.Replace("kafuch", "");
+                app.Replace("kafuch_osen_per", "");
+                app.Replace("kafuch_vesna_per", "");
+            }
+
+            osenHours.Add(6, plan.ispob
+                .Where(o => o.Period == "осень")
+                .Select(o => o.Hours).Sum()
+                +
+                (plan.KafUch ? 10m : 0m)
+                +
+                10m);
+            app.Replace("6osen", osenHours[6]);
+            vesnaHours.Add(6, plan.ispob
+                .Where(o => o.Period == "весна")
+                .Select(o => o.Hours).Sum()
+                +
+                (plan.KafUch ? 10m : 0m)
+                +
+                10m);
+            app.Replace("6vesna", vesnaHours[6]);
+            app.Replace("6vsego", plan.ispob
+                .Select(o => o.Hours).Sum()
+                +
+                (plan.KafUch ? 20m : 0m)
+                +
+                20m
+                );
+
+
+            //7 tablica
+            if(plan.kval.Count > 0)
+            {
+                for (int pr = 1, i = 0; pr <= 4; pr++, i++)
+                {
+                    var kps = plan.kval;
+                    if (i < kps.Count)
+                    {
+                        var kv = kps[i];
+                        app.Replace($"kval{pr}_nazv", kv.Kval);
+                        app.Replace($"kval{pr}", kv.Hours.ToHours());
+                        app.Replace($"kval{pr}_per", kv.Period);
+                    }
+                    else
+                    {
+                        break;
+                        //app.Replace($"kval{pr}_nazv", "");
+                        //app.Replace($"kval{pr}", "");
+                        //app.Replace($"kval{pr}_per", "");
+                    }
+                }
+
+                //delete empty kval rows
+                {
+                    var tables = doc.Tables;
+                    var tb = tables[11 - tableOffset];
+                    var count = plan.kval.Count;
+                    var rowstodelete = 4 - count;
+
+                    for (int i = 0; i < rowstodelete; i++)
+                    {
+                        tb.Cell(2 + count, 1).Select();
+                        app.Selection.SelectRow();
+                        app.Selection.Cells.Delete();
+                    }
+                }
+
+                app.Replace("7nepredusmotr", "");
+            }
+            else
+            {
+                var tables = doc.Tables;
+                var tb = tables[11 - tableOffset];
+                tb.Delete();
+                tableOffset++;
+                app.Replace("7nepredusmotr", "Не предусмотрено.");
+            }
+            osenHours.Add(7, plan.kval
+                .Where(k => k.Period == "осень")
+                .Select(k => k.Hours).Sum());
+            app.Replace("7osen", osenHours[7].ToHours());
+            vesnaHours.Add(7, plan.kval
+                .Where(k => k.Period == "весна")
+                .Select(k => k.Hours).Sum());
+            app.Replace("7vesna", vesnaHours[7].ToHours());
+            app.Replace("7vsego", plan.kval
+                .Select(k => k.Hours).Sum().ToHours());
+
+
+            //end
+            app.Replace("vsego_osen", osenHours.Values.Sum());
+            app.Replace("vsego_vesna", vesnaHours.Values.Sum());
+            app.Replace("vsego", osenHours.Values.Sum() + vesnaHours.Values.Sum());
+
+            app.Replace("otchet_osen1", osenHours[1] > 0 ?
+                $"Запланированный на семестр объём учебной работы по штатному расписанию (Раздел 1 плана)" +
+                $" выполнен полностью - {osenHours[1]} час."
+                :
+                $"Работы по разделу 1 индивидуального плана в отчётном семестре не планировались.");
+            app.Replace("otchet_osen2", osenHours[2] > 0 ?
+                $"Запланированный на семестр объём дополнительной учебной работы со студентами (Раздел 2 плана)" +
+                $" выполнен полностью - {osenHours[2]} час."
+                :
+                $"Работы по разделу 2 индивидуального плана в отчётном семестре не планировались.");
+            app.Replace("otchet_osen3", osenHours[3] > 0 ?
+                $"Запланированный на семестр объём дополнительной учебной работы с аспирантами (Раздел 3 плана)" +
+                $" выполнен полностью - {osenHours[3]} час."
+                :
+                $"Работы по разделу 3 индивидуального плана в отчётном семестре не планировались.");
+            app.Replace("otchet_osen4", osenHours[4] > 0 ?
+                $"Запланированный на семестр объём учебно-методической работы (Раздел 4 плана)" +
+                $" выполнен полностью - {osenHours[4]} час."
+                :
+                $"Работы по разделу 4 индивидуального плана в отчётном семестре не планировались.");
+            app.Replace("otchet_osen5", osenHours[5] > 0 ?
+                $"Запланированный на семестр объём научной работы (Раздел 5 плана)" +
+                $" выполнен полностью - {osenHours[5]} час."
+                :
+                $"Работы по разделу 5 индивидуального плана в отчётном семестре не планировались.");
+            app.Replace("otchet_osen6", osenHours[6] > 0 ?
+                $"Запланированный на семестр объём организационно-воспитательной работы (Раздел 6 плана)" +
+                $" выполнен полностью - {osenHours[6]} час."
+                :
+                $"Работы по разделу 6 индивидуального плана в отчётном семестре не планировались.");
+            app.Replace("otchet_osen7", osenHours[7] > 0 ?
+                $"Запланированный на семестр объём работы по повышению квалификации (Раздел 7 плана)" +
+                $" выполнен полностью - {osenHours[7]} час."
+                :
+                $"Работы по разделу 7 индивидуального плана в отчётном семестре не планировались.");
+            app.Replace("otchet_osen8", 
+                $"Запланированный на семестр объём работы выполнен полностью – {osenHours.Values.Sum()} час.");
+
+
+
+
+
+
+            app.Replace("otchet_vesna1", vesnaHours[1] > 0 ?
+                $"Запланированный на семестр объём учебной работы по штатному расписанию (Раздел 1 плана)" +
+                $" выполнен полностью - {vesnaHours[1]} час."
+                :
+                $"Работы по разделу 1 индивидуального плана в отчётном семестре не планировались.");
+            app.Replace("otchet_vesna2", vesnaHours[2] > 0 ?
+                $"Запланированный на семестр объём дополнительной учебной работы со студентами (Раздел 2 плана)" +
+                $" выполнен полностью - {vesnaHours[2]} час."
+                :
+                $"Работы по разделу 2 индивидуального плана в отчётном семестре не планировались.");
+            app.Replace("otchet_vesna3", vesnaHours[3] > 0 ?
+                $"Запланированный на семестр объём дополнительной учебной работы с аспирантами (Раздел 3 плана)" +
+                $" выполнен полностью - {vesnaHours[3]} час."
+                :
+                $"Работы по разделу 3 индивидуального плана в отчётном семестре не планировались.");
+            app.Replace("otchet_vesna4", vesnaHours[4] > 0 ?
+                $"Запланированный на семестр объём учебно-методической работы (Раздел 4 плана)" +
+                $" выполнен полностью - {vesnaHours[4]} час."
+                :
+                $"Работы по разделу 4 индивидуального плана в отчётном семестре не планировались.");
+            app.Replace("otchet_vesna5", vesnaHours[5] > 0 ?
+                $"Запланированный на семестр объём научной работы (Раздел 5 плана)" +
+                $" выполнен полностью - {vesnaHours[5]} час."
+                :
+                $"Работы по разделу 5 индивидуального плана в отчётном семестре не планировались.");
+            app.Replace("otchet_vesna6", vesnaHours[6] > 0 ?
+                $"Запланированный на семестр объём организационно-воспитательной работы (Раздел 6 плана)" +
+                $" выполнен полностью - {vesnaHours[6]} час."
+                :
+                $"Работы по разделу 6 индивидуального плана в отчётном семестре не планировались.");
+            app.Replace("otchet_vesna7", vesnaHours[7] > 0 ?
+                $"Запланированный на семестр объём работы по повышению квалификации (Раздел 7 плана)" +
+                $" выполнен полностью - {vesnaHours[7]} час."
+                :
+                $"Работы по разделу 7 индивидуального плана в отчётном семестре не планировались.");
+            app.Replace("otchet_vesna8",
+                $"Запланированный на семестр объём работы выполнен полностью – {vesnaHours.Values.Sum()} час.");
 
             doc.Save();
             System.Windows.MessageBox.Show($"План {plan.NameRP} сгенерирован!");
@@ -815,13 +1644,15 @@ namespace IP_PPS
             object matchControl = false;
             object read_only = false;
             object visible = true;
-            object replace = 2;
-            object wrap = 1;
+            object replace = Word.WdReplace.wdReplaceAll;
+            object wrap = Word.WdFindWrap.wdFindContinue;
             //execute find and replace
             doc.Selection.Find.Execute(ref findText, ref matchCase, ref matchWholeWord,
                 ref matchWildCards, ref matchSoundsLike, ref matchAllWordForms, ref forward, ref wrap, ref format, ref replaceWithText, ref replace,
                 ref matchKashida, ref matchDiacritics, ref matchAlefHamza, ref matchControl);
         }
+
+
 
         public static void Replace(this Word.Application doc, string key, object value)
         {
