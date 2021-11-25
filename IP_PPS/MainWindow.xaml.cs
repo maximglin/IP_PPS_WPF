@@ -72,6 +72,12 @@ namespace IP_PPS
                     dic[name].Predmets.Last().Oplata = oplata;
                 }
 
+                List<string> to_remove = new List<string>();
+                foreach (var p in dic.Values)
+                    if (p.Stavka == 0m)
+                        to_remove.Add(p.Name);
+                foreach (var prepod in to_remove)
+                    dic.Remove(prepod);
 
                 string prdata = File.ReadAllText("prepods.csv").Replace("\r\n", ";");
                 cells = prdata.Split(';');
@@ -261,6 +267,25 @@ namespace IP_PPS
                 data.SelectedPlan.CRC.Remove(data.SelectedPlan.SelectedCRC);
         }
 
+        private string GetLet(int let)
+        {
+            if (let == 0)
+                return "лет";
+            else if (let >= 11 && let <= 14)
+                return "лет";
+            else if (let % 10 == 0)
+                return "лет";
+            else if (let % 10 == 1)
+                return "год";
+            else if (let % 10 == 2)
+                return "года";
+            else if (let % 10 == 3)
+                return "года";
+            else if (let % 10 == 4)
+                return "года";
+
+            return "лет";
+        }
 
         private void Button_Click_9(object sender, RoutedEventArgs e)
         {
@@ -297,7 +322,7 @@ namespace IP_PPS
             app.Replace("fiorp", plan.NameRP);
             app.Replace("zvanie", plan.Zvanie);
             app.Replace("stepen", plan.Stepen);
-            app.Replace("stazh", plan.Stazh);
+            app.Replace("stazh", plan.Stazh + " " + GetLet(plan.Stazh));
             app.Replace("stavka", plan.Stavka);
             app.Replace("trudoustr", plan.Trudoustr);
 
