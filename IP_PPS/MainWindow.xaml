@@ -35,6 +35,9 @@
                 <TextBlock>Нужно всего распределить =</TextBlock>
                 <TextBlock Text="{Binding SelectedPlan.HoursToCount}"></TextBlock>
                 <TextBlock>ч</TextBlock>
+                <TextBlock Margin="20 0 0 0">Из них распределено =</TextBlock>
+                <TextBlock Text="{Binding SelectedPlan.HoursMetodPlusHoursEntered}"></TextBlock>
+                <TextBlock>ч</TextBlock>
             </WrapPanel>
             <WrapPanel>
                 <TextBlock>На метод подготовку пошло =</TextBlock>

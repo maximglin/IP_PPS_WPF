@@ -289,6 +289,13 @@ namespace IP_PPS
 
         private void Button_Click_9(object sender, RoutedEventArgs e)
         {
+            var plan = this.data.SelectedPlan;
+
+            if (plan.IsValid() == false)
+                if(MyOkCancelForm.Show("Гавно", "Ваш план хуйня, придется редачить, все равно сгенерировать?", "Да, мне похуй", "Нееет, спасите") == MyOkCancelForm.Result.Cancel)
+                    return;
+
+
             Word.Application app = new Microsoft.Office.Interop.Word.Application { Visible = true };
             Word.Document template = app.Documents.Open(
                 System.AppDomain.CurrentDomain.BaseDirectory + @"\Document.docx",
@@ -296,7 +303,7 @@ namespace IP_PPS
             template.Activate();
 
 
-            var plan = this.data.SelectedPlan;
+            
 
 
             template.SaveAs2(System.AppDomain.CurrentDomain.BaseDirectory + $@"\Планы\ИТИВС 2021 Индивидуальный план {plan.NameRP}.docx");

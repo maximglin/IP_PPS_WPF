@@ -328,6 +328,7 @@ namespace IP_PPS
             OnPropertyChanged(nameof(MetodPredmets));
             OnPropertyChanged(nameof(NotDistributedHours));
             OnPropertyChanged(nameof(MetodPrHours));
+            OnPropertyChanged(nameof(HoursMetodPlusHoursEntered));
         }
 
         public Plan()
@@ -749,7 +750,17 @@ namespace IP_PPS
         }
 
 
-        
+        public decimal HoursMetodPlusHoursEntered => (HoursEntered + MetodPrHours).Normalize();
+        public bool IsValid()
+        {
+            if (HoursEntered + MetodPrHours != HoursToCount)
+                return false;
+            if (MetodPrHours < 0)
+                return false;
+
+
+            return true;
+        }
 
         public decimal HoursEntered =>
             foses.Select(r => r.Hours).Sum() +
