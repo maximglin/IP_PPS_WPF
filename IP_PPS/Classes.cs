@@ -368,6 +368,10 @@ namespace IP_PPS
             {
                 UpdateKval();
             };
+            AspPredmets.CollectionChanged += (sender, e) =>
+            {
+                UpdateAspPredmets();
+            };
         }
 
         public class Rabota : Base
@@ -676,6 +680,64 @@ namespace IP_PPS
         }
         #endregion
 
+
+        public List<GroupedPredmet> asppredmets = new List<GroupedPredmet>();
+        public class GroupedAspPredmetStr
+        {
+            Action update;
+            public GroupedAspPredmetStr(Action update)
+            {
+                this.update = update;
+            }
+            string name;
+            public string Name { get => name; set { name = value; update?.Invoke(); } }
+            string groups;
+            public string Groups { get => groups; set { groups = value; update?.Invoke(); } }
+            int sem;
+            public int Sem { get => sem; set { sem = value; update?.Invoke(); } }
+            string h1, h2, h3, h4, h5, h6;
+            public string H1 { get => h1; set { h1 = value; update?.Invoke(); } }
+            public string H2 { get => h2; set { h2 = value; update?.Invoke(); } }
+            public string H3 { get => h3; set { h3 = value; update?.Invoke(); } }
+            public string H4 { get => h4; set { h4 = value; update?.Invoke(); } }
+            public string H5 { get => h5; set { h5 = value; update?.Invoke(); } }
+            public string H6 { get => h6; set { h6 = value; update?.Invoke(); } }
+        }
+
+
+        public ObservableCollection<GroupedAspPredmetStr> AspPredmets
+        {
+            get;
+        } = new ObservableCollection<GroupedAspPredmetStr>();
+        public void UpdateAspPredmets()
+        {
+            asppredmets.Clear();
+            foreach(var pr in AspPredmets)
+            {
+                GroupedPredmet g = new GroupedPredmet();
+                g.Name = pr.Name;
+                g.Groups.Add(pr.Groups);
+                g.Sem = pr.Sem;
+                g.Hours[0] = MainWindow.ParseDec(pr.H1);
+                g.Hours[1] = MainWindow.ParseDec(pr.H2);
+                g.Hours[2] = MainWindow.ParseDec(pr.H3);
+                g.Hours[3] = MainWindow.ParseDec(pr.H4);
+                g.Hours[4] = MainWindow.ParseDec(pr.H5);
+                g.Hours[5] = MainWindow.ParseDec(pr.H6);
+                asppredmets.Add(g);
+            }
+            OnDistribute();
+        }
+
+        public GroupedAspPredmetStr selectedAspPredmet;
+        public GroupedAspPredmetStr SelectedAspPredmet { get => selectedAspPredmet; set
+            {
+                selectedAspPredmet = value;
+                OnPropertyChanged(nameof(SelectedAspPredmet));
+            } 
+        }
+
+
         bool kafuch = false;
         public bool KafUch { get => kafuch;
         set
@@ -687,18 +749,7 @@ namespace IP_PPS
         }
 
 
-        bool asp = false;
-        public bool Asp
-        {
-            get => asp;
-            set
-            {
-                asp = value;
-                OnPropertyChanged(nameof(Asp));
-                OnDistribute();
-            }
-        }
-        public List<Predmet> asppredmets = new List<Predmet>();
+        
 
         public decimal HoursEntered =>
             foses.Select(r => r.Hours).Sum() +

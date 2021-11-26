@@ -138,7 +138,7 @@ namespace IP_PPS
             int.TryParse(s, out val);
             return val;
         }
-        decimal ParseDec(string s)
+        public static decimal ParseDec(string s)
         {
             decimal val = 0;
             decimal.TryParse(s, out val);
@@ -820,7 +820,7 @@ namespace IP_PPS
             }
 
 
-            if(plan.Asp == false)
+            if(plan.asppredmets.Count == 0)
             {
                 var tables = doc.Tables;
                 var tb = tables[6 - tableOffset];
@@ -848,6 +848,111 @@ namespace IP_PPS
             {
                 app.Replace("31zagolovok", "\t\t\t\t\t3.1. Сводные данные");
                 app.Replace("32zagolovok", "3.2. Занятия по учебным дисциплинам");
+                for (int pr = 1, i = 0; pr <= 11; pr++, i++)
+                {
+                    var ps = plan.asppredmets.ToList();
+                    if (i < ps.Count)
+                    {
+                        var p = ps[i];
+                        app.Replace($"{pr}ap_sem", p.Sem);
+                        app.Replace($"{pr}ap_nazv", p.Name + $" ({string.Join(", ", p.Groups)})");
+                        for(int k = 1; k <=6; k++)
+                        {
+                            app.Replace($"{pr}ap_{k}", p.Hours[k - 1].ToHours());
+                        }
+                    }
+                    else
+                        break;
+                }
+                var tables = doc.Tables;
+                var tb = tables[7 - tableOffset];
+                var count = plan.asppredmets.Count;
+                var rowstodelete = 11 - count;
+                for (int i = 0; i < rowstodelete; i++)
+                {
+                    tb.Cell(count + 3, 1).Select();
+                    app.Selection.SelectRow();
+                    app.Selection.Cells.Delete();
+                }
+
+                {
+                    app.Replace("alek_osen", plan.asppredmets
+                        .Where(p => p.Period == "осень")
+                        .Select(p => p.Hours[0]).Sum().ToHours());
+                    app.Replace("asem_osen", plan.asppredmets
+                        .Where(p => p.Period == "осень")
+                        .Select(p => p.Hours[1]).Sum().ToHours());
+                    app.Replace("aind_osen", plan.asppredmets
+                        .Where(p => p.Period == "осень")
+                        .Select(p => p.Hours[2]).Sum().ToHours());
+                    app.Replace("aprakt_osen", plan.asppredmets
+                        .Where(p => p.Period == "осень")
+                        .Select(p => p.Hours[3]).Sum().ToHours());
+                    app.Replace("anauch_osen", plan.asppredmets
+                        .Where(p => p.Period == "осень")
+                        .Select(p => p.Hours[4]).Sum().ToHours());
+                    app.Replace("ankr_osen", plan.asppredmets
+                        .Where(p => p.Period == "осень")
+                        .Select(p => p.Hours[5]).Sum().ToHours());
+
+                    osenHours.Add(3, plan.asppredmets
+                        .Where(p => p.Period == "осень")
+                        .Select(p => p.Hours.Sum()).Sum());
+                    app.Replace("a_vsego_osen", osenHours[3]);
+                }
+                {
+                    app.Replace("alek_vesna", plan.asppredmets
+                        .Where(p => p.Period == "весна")
+                        .Select(p => p.Hours[0]).Sum().ToHours());
+                    app.Replace("asem_vesna", plan.asppredmets
+                        .Where(p => p.Period == "весна")
+                        .Select(p => p.Hours[1]).Sum().ToHours());
+                    app.Replace("aind_vesna", plan.asppredmets
+                        .Where(p => p.Period == "весна")
+                        .Select(p => p.Hours[2]).Sum().ToHours());
+                    app.Replace("aprakt_vesna", plan.asppredmets
+                        .Where(p => p.Period == "весна")
+                        .Select(p => p.Hours[3]).Sum().ToHours());
+                    app.Replace("anauch_vesna", plan.asppredmets
+                        .Where(p => p.Period == "весна")
+                        .Select(p => p.Hours[4]).Sum().ToHours());
+                    app.Replace("ankr_vesna", plan.asppredmets
+                        .Where(p => p.Period == "весна")
+                        .Select(p => p.Hours[5]).Sum().ToHours());
+
+                    vesnaHours.Add(3, plan.asppredmets
+                        .Where(p => p.Period == "весна")
+                        .Select(p => p.Hours.Sum()).Sum());
+                    app.Replace("a_vsego_vesna", vesnaHours[3]);
+                }
+
+                {
+                    app.Replace("alek_vsego", plan.asppredmets
+                        
+                        .Select(p => p.Hours[0]).Sum().ToHours());
+                    app.Replace("asem_vsego", plan.asppredmets
+                        
+                        .Select(p => p.Hours[1]).Sum().ToHours());
+                    app.Replace("aind_vsego", plan.asppredmets
+                        
+                        .Select(p => p.Hours[2]).Sum().ToHours());
+                    app.Replace("aprakt_vsego", plan.asppredmets
+                        
+                        .Select(p => p.Hours[3]).Sum().ToHours());
+                    app.Replace("anauch_vsego", plan.asppredmets
+                        
+                        .Select(p => p.Hours[4]).Sum().ToHours());
+                    app.Replace("ankr_vsego", plan.asppredmets
+                        
+                        .Select(p => p.Hours[5]).Sum().ToHours());
+
+
+                    app.Replace("a_vsego", vesnaHours[3] + osenHours[3]);
+                }
+
+                app.Replace("dop_asp_osen", osenHours[3].ToHours());
+                app.Replace("dop_asp_vesna", vesnaHours[3].ToHours());
+                app.Replace("dop_asp_vsego", (osenHours[3] + vesnaHours[3]).ToHours());
             }
 
             //4 tablica
@@ -1637,6 +1742,19 @@ namespace IP_PPS
 
             doc.Save();
             System.Windows.MessageBox.Show($"План {plan.NameRP} сгенерирован!");
+        }
+
+        private void Button_Click_13(object sender, RoutedEventArgs e)
+        {
+            data.SelectedPlan.AspPredmets.Add(new Plan.GroupedAspPredmetStr(
+                data.SelectedPlan.UpdateAspPredmets
+                ));
+        }
+
+        private void Button_Click_14(object sender, RoutedEventArgs e)
+        {
+            if (data.SelectedPlan.SelectedAspPredmet != null)
+                data.SelectedPlan.AspPredmets.Remove(data.SelectedPlan.SelectedAspPredmet);
         }
     }
 

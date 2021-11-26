@@ -103,10 +103,26 @@
                         ColumnWidth="*" CanUserAddRows="false" IsReadOnly="true"></DataGrid>
             </TabItem>
             <TabItem Header="3 таблица">
-                <WrapPanel>
-                    <TextBlock>Есть аспиранты</TextBlock>
-                    <CheckBox IsChecked="{Binding Asp}"></CheckBox>
-                </WrapPanel>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"></RowDefinition>
+                        <RowDefinition Height="*"></RowDefinition>
+                    </Grid.RowDefinitions>
+
+                    <WrapPanel Grid.Row="0">
+                        <Button Click="Button_Click_13">Add</Button>
+                        <Button Click="Button_Click_14">Remove</Button>
+                        <TextBlock>Предметы аспирантов</TextBlock>
+                    </WrapPanel>
+                    <DataGrid Grid.Row="1"
+                        ItemsSource="{Binding AspPredmets}"
+                        SelectedItem="{Binding SelectedAspPredmet}"
+                        AutoGenerateColumns="True"
+                        ColumnWidth="*"
+                        CanUserAddRows="false">
+                    </DataGrid>
+                </Grid>
+                
             </TabItem>
             <TabItem Header="4 таблица">
                 <TabControl>
