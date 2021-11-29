@@ -292,7 +292,7 @@ namespace IP_PPS
             var plan = this.data.SelectedPlan;
 
             if (plan.IsValid() == false)
-                if(MyOkCancelForm.Show("Гавно", "Ваш план хуйня, придется редачить, все равно сгенерировать?", "Да, мне похуй", "Нееет, спасите") == MyOkCancelForm.Result.Cancel)
+                if(MyOkCancelForm.Show("Ошибка", "Часы не сходятся, придется редачить, все равно сгенерировать?", "Да", "Нееет, спасите") == MyOkCancelForm.Result.Cancel)
                     return;
 
 
