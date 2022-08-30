@@ -13,9 +13,13 @@
             <RowDefinition></RowDefinition>
         </Grid.RowDefinitions>
 
-        <WrapPanel Grid.Row="0">
-            <Button Click="Button_Click">Parse Data</Button>
-        </WrapPanel>
+        <DockPanel Grid.Row="0" LastChildFill="False">
+            <WrapPanel DockPanel.Dock="Right">
+                <TextBlock>Текущий год:</TextBlock>
+                <TextBox Width="100px" x:Name="tboxYear">2022</TextBox>
+            </WrapPanel>
+            <Button Click="Button_Click" DockPanel.Dock="Left">Parse Data</Button>
+        </DockPanel>
         <StackPanel Grid.Row="1">
             <DockPanel LastChildFill="false">
                 <WrapPanel>

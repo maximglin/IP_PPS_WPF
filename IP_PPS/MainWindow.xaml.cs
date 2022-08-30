@@ -106,7 +106,7 @@ namespace IP_PPS
                         prepod.Stepen = stepen;
                         prepod.Zvanie = zvanie;
                         if (year != 0)
-                            prepod.Stazh = 2021 - year;
+                            prepod.Stazh = int.Parse(tboxYear.Text) - year;
                         else
                             prepod.Stazh = -1;
                         prepod.Trudoustr = trud;
