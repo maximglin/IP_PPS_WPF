@@ -855,7 +855,7 @@ namespace IP_PPS
             {
                 app.Replace("31zagolovok", "\t\t\t\t\t3.1. Сводные данные");
                 app.Replace("32zagolovok", "3.2. Занятия по учебным дисциплинам");
-                for (int pr = 1, i = 0; pr <= 11; pr++, i++)
+                for (int pr = 1, i = 0; pr <= 24; pr++, i++)
                 {
                     var ps = plan.asppredmets.ToList();
                     if (i < ps.Count)
@@ -874,7 +874,7 @@ namespace IP_PPS
                 var tables = doc.Tables;
                 var tb = tables[7 - tableOffset];
                 var count = plan.asppredmets.Count;
-                var rowstodelete = 11 - count;
+                var rowstodelete = 24 - count;
                 for (int i = 0; i < rowstodelete; i++)
                 {
                     tb.Cell(count + 3, 1).Select();
